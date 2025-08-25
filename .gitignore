@@ -55,3 +55,6 @@ src/arm-none-eabi
 node_modules
 package.json
 package-lock.json
+
+# Vs
+.vs/

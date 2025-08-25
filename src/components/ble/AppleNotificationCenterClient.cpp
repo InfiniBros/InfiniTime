@@ -5,6 +5,7 @@
 #include "displayapp/screens/Symbols.h"
 
 using namespace Pinetime::Controllers;
+using namespace Pinetime::Applications::Screens;
 
 int OnDiscoveryEventCallback(uint16_t conn_handle, const struct ble_gatt_error* error, const struct ble_gatt_svc* service, void* arg) {
   auto client = static_cast<AppleNotificationCenterClient*>(arg);
@@ -193,40 +194,28 @@ int AppleNotificationCenterClient::OnControlPointWrite(uint16_t /*connectionHand
 }
 
 std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId) {
-  if (appId.rfind("com.apple.", 0) == 0)
-    return Pinetime::Applications::Screens::Symbols::appleLogo;
+  static const std::unordered_map<std::string, std::string> appIdToEmoji = 
+  {{"net.whatsapp.WhatsApp", Symbols::whatsappLogo},
+  {"org.whispersystems.signal", Symbols::signalLogo},
+  {"com.burbn.instagram", Symbols::instagramLogo},
+  {"com.hammerandchisel.discord", Symbols::discordLogo},
+  {"com.google.ios.youtube", Symbols::youtubeLogo},
+  {"com.reddit.Reddit", Symbols::redditLogo},
+  {"com.atebits.Tweetie2", Symbols::twitterLogo},
+  {"com.duolingo.DuolingoMobile", Symbols::duolingoLogo},
+  {"com.toyopagroup.picaboo", Symbols::snapchatLogo},
+  {"com.openai.chat", Symbols::chatgptLogo}};
 
-  if (appId == "net.whatsapp.WhatsApp")
-    return Pinetime::Applications::Screens::Symbols::whatsappLogo;
+  if (appId.rfind("com.apple.", 0) == 0) {
+    return Symbols::appleLogo;
+  }
 
-  if (appId == "org.whispersystems.signal")
-    return Pinetime::Applications::Screens::Symbols::signalLogo;
+  auto it = appIdToEmoji.find(appId);
+  if (it != appIdToEmoji.end()) {
+    return it->second;
+  }
 
-  if (appId == "com.burbn.instagram")
-    return Pinetime::Applications::Screens::Symbols::instagramLogo;
-
-  if (appId == "com.hammerandchisel.discord")
-    return Pinetime::Applications::Screens::Symbols::discordLogo;
-
-  if (appId == "com.google.ios.youtube")
-    return Pinetime::Applications::Screens::Symbols::youtubeLogo;
-
-  if (appId == "com.reddit.Reddit")
-    return Pinetime::Applications::Screens::Symbols::redditLogo;
-
-  if (appId == "com.atebits.Tweetie2")
-    return Pinetime::Applications::Screens::Symbols::twitterLogo;
-
-  if (appId == "com.duolingo.DuolingoMobile")
-    return Pinetime::Applications::Screens::Symbols::duolingoLogo;
-
-  if (appId == "com.toyopagroup.picaboo")
-    return Pinetime::Applications::Screens::Symbols::snapchatLogo;
-
-  if (appId == "com.openai.chat")
-    return Pinetime::Applications::Screens::Symbols::chatgptLogo;
-
-  return Pinetime::Applications::Screens::Symbols::none;
+  return Symbols::none;
 }
 
 void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
@@ -290,16 +279,15 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
     request[11] = 0x03; // Attribute ID: Message
     request[12] = (messageSize & 0xFF);
     request[13] = ((messageSize >> 8) & 0xFF);
-    request[14] = 0x0; // [ADDED] Attribute ID: AppIdentifier
+    request[14] = 0x0;  // [ADDED] Attribute ID: AppIdentifier
     request[15] = 0x00; // no max length parameter
 
     ble_gattc_write_flat(event->notify_rx.conn_handle, controlPointHandle, request, sizeof(request), OnControlPointWriteCallback, this);
 
     // NotificationManager::Notification notif;
     // char uuidStr[55];
-    // snprintf(uuidStr, sizeof(uuidStr), "iOS Notif.:%08lx\nEvID: %d\nCat: %d\nFlags: %d", notificationUuid, eventId, category, eventFlags);
-    // notif.message = std::array<char, 101> {};
-    // std::strncpy(notif.message.data(), uuidStr, notif.message.size() - 1);
+    // snprintf(uuidStr, sizeof(uuidStr), "iOS Notif.:%08lx\nEvID: %d\nCat: %d\nFlags: %d", notificationUuid, eventId, category,
+    // eventFlags); notif.message = std::array<char, 101> {}; std::strncpy(notif.message.data(), uuidStr, notif.message.size() - 1);
     // notif.message[10] = '\0';                       // Seperate Title and Message
     // notif.message[notif.message.size() - 1] = '\0'; // Ensure null-termination
     // notif.size = std::min(std::strlen(uuidStr), notif.message.size());
@@ -326,22 +314,32 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
     // Walk through attributes as per ANCS spec
     size_t offset = 5; // after UID (1 + 4 bytes)
     while (offset < OS_MBUF_PKTLEN(event->notify_rx.om)) {
-        uint8_t attrId;
-        uint16_t attrLen;
+      uint8_t attrId;
+      uint16_t attrLen;
 
-        if (os_mbuf_copydata(event->notify_rx.om, offset, 1, &attrId) != 0) break;
-        if (os_mbuf_copydata(event->notify_rx.om, offset + 1, 2, &attrLen) != 0) break;
+      if (os_mbuf_copydata(event->notify_rx.om, offset, 1, &attrId) != 0)
+        break;
+      if (os_mbuf_copydata(event->notify_rx.om, offset + 1, 2, &attrLen) != 0)
+        break;
 
-        std::string value = DecodeUtf8String(event->notify_rx.om, attrLen, offset + 3);
+      std::string value = DecodeUtf8String(event->notify_rx.om, attrLen, offset + 3);
 
-        switch(attrId) {
-          case 0x00: decodedAppId = value; break;
-          case 0x01: decodedTitle = value; break;
-          case 0x02: decodedSubTitle = value; break;
-          case 0x03: decodedMessage = value; break;
-        }
+      switch (attrId) {
+        case 0x00:
+          decodedAppId = value;
+          break;
+        case 0x01:
+          decodedTitle = value;
+          break;
+        case 0x02:
+          decodedSubTitle = value;
+          break;
+        case 0x03:
+          decodedMessage = value;
+          break;
+      }
 
-        offset += 3 + attrLen;
+      offset += 3 + attrLen;
     }
 
     NRF_LOG_INFO("Decoded AppId: %s", decodedAppId.c_str());
@@ -364,7 +362,7 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
 
     NotificationManager::Notification notif;
     notif.ancsUid = notificationUid;
-    notif.appId  = decodedAppId;
+    notif.appId = decodedAppId;
 
     std::string notifStr;
     if (incomingCall) {
@@ -378,7 +376,7 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
       notifStr += "...";
     }
 
-    notif.message = std::array<char, 101>{};
+    notif.message = std::array<char, 101> {};
     std::strncpy(notif.message.data(), notifStr.c_str(), notif.message.size() - 1);
 
     size_t lineBreak = notifStr.find('\n');
@@ -494,11 +492,12 @@ std::string AppleNotificationCenterClient::DecodeUtf8String(os_mbuf* om, uint16_
     // Check if the codepoint falls into the specified font ranges or is explicitly listed
     return (codepoint >= 0x20 && codepoint <= 0x7E) ||   // Printable ASCII
            (codepoint >= 0x410 && codepoint <= 0x44F) || // Cyrillic
-           (codepoint == 0x00E4 || codepoint == 0x00F6 || codepoint == 0x00FC || codepoint == 0x00C4 || codepoint == 0x00D6 || codepoint == 0x00DC || codepoint == 0x00DF) || // German Umlauts
-           (codepoint == 0x20AC) || // Euro symbol
-           (codepoint == 0x2018 || codepoint == 0x2019) || // missing apostrophes
+           (codepoint == 0x00E4 || codepoint == 0x00F6 || codepoint == 0x00FC || codepoint == 0x00C4 || codepoint == 0x00D6 ||
+            codepoint == 0x00DC || codepoint == 0x00DF) ||                        // German Umlauts
+           (codepoint == 0x20AC) ||                                               // Euro symbol
+           (codepoint == 0x2018 || codepoint == 0x2019) ||                        // missing apostrophes
            (codepoint == 0x201E || codepoint == 0x201C || codepoint == 0x201D) || // additional quotation marks
-           (codepoint == 0x2026) || // its just this: ...
+           (codepoint == 0x2026) ||                                               // its just this: ...
            codepoint == 0xB0;
   };
 
