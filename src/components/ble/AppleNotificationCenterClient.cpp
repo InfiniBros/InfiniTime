@@ -194,25 +194,30 @@ int AppleNotificationCenterClient::OnControlPointWrite(uint16_t /*connectionHand
 }
 
 std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId) {
-  static const std::unordered_map<std::string, std::string> appIdToEmoji = 
-  {{"net.whatsapp.WhatsApp", Symbols::whatsappLogo},
-  {"org.whispersystems.signal", Symbols::signalLogo},
-  {"com.burbn.instagram", Symbols::instagramLogo},
-  {"com.hammerandchisel.discord", Symbols::discordLogo},
-  {"com.google.ios.youtube", Symbols::youtubeLogo},
-  {"com.reddit.Reddit", Symbols::redditLogo},
-  {"com.atebits.Tweetie2", Symbols::twitterLogo},
-  {"com.duolingo.DuolingoMobile", Symbols::duolingoLogo},
-  {"com.toyopagroup.picaboo", Symbols::snapchatLogo},
-  {"com.openai.chat", Symbols::chatgptLogo}};
-
-  if (appId.rfind("com.apple.", 0) == 0) {
-    return Symbols::appleLogo;
-  }
+  static const std::unordered_map<std::string, std::string> appIdToEmoji = {{"net.whatsapp.WhatsApp", Symbols::whatsappLogo},
+                                                                            {"org.whispersystems.signal", Symbols::signalLogo},
+                                                                            {"com.burbn.instagram", Symbols::instagramLogo},
+                                                                            {"com.hammerandchisel.discord", Symbols::discordLogo},
+                                                                            {"com.google.ios.youtube", Symbols::youtubeLogo},
+                                                                            {"com.reddit.Reddit", Symbols::redditLogo},
+                                                                            {"com.atebits.Tweetie2", Symbols::twitterLogo},
+                                                                            {"com.duolingo.DuolingoMobile", Symbols::duolingoLogo},
+                                                                            {"com.toyopagroup.picaboo", Symbols::snapchatLogo},
+                                                                            {"com.openai.chat", Symbols::chatgptLogo},
+                                                                            {"com.github.stormbreaker.prod", Symbols::githubLogo},
+                                                                            {"com.apple.podcasts", Symbols::podcastsLogo},
+                                                                            {"com.apple.MobileSMS", Symbols::imsgLogo},
+                                                                            {"com.apple.reminders", Symbols::remindersLogo},
+                                                                            {"com.apple.shortcuts", Symbols::shortcutsLogo},
+                                                                            {"com.apple.Music", Symbols::music}};
 
   auto it = appIdToEmoji.find(appId);
   if (it != appIdToEmoji.end()) {
     return it->second;
+  }
+
+  if (appId.rfind("com.apple.", 0) == 0) {
+    return Symbols::appleLogo;
   }
 
   return Symbols::none;

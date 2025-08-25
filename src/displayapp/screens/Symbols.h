@@ -59,6 +59,12 @@ namespace Pinetime {
         static constexpr const char* duolingoLogo = "\xEE\xA0\x92";
         static constexpr const char* snapchatLogo = "\xEF\x8A\xAB";
         static constexpr const char* chatgptLogo = "\xEE\x9F\x8F";
+        static constexpr const char* githubLogo = "\xEF\x82\x9B";
+        static constexpr const char* podcastsLogo = "\xEF\x8B\x8E";
+        static constexpr const char* imsgLogo = "\xEF\x89\xBA";
+        static constexpr const char* remindersLogo = "\xEF\x83\x8A";
+        static constexpr const char* shortcutsLogo = "\xEF\x97\xBD";
+        static constexpr const char* birthdayLogo = "\xEF\x87\xBD";
 
         // fontawesome_weathericons.c
         // static constexpr const char* sun = "\xEF\x86\x85";
