@@ -36,9 +36,7 @@ namespace Pinetime {
     namespace Screens {
       class Music : public Screen {
       public:
-        Music(Pinetime::Controllers::MusicService& music,
-              const Controllers::Ble& bleController,
-              Controllers::DateTime& dateTimeController);
+        Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble& bleController, Controllers::DateTime& dateTimeController);
 
         ~Music() override;
 
@@ -51,6 +49,12 @@ namespace Pinetime {
 
         void UpdateLength();
 
+        void RefreshTrackInfo(bool force);
+
+        void SetDisconnectedUI();
+
+        void SetConnectedUI();
+
         lv_obj_t* btnPrev;
         lv_obj_t* btnPlayPause;
         lv_obj_t* btnNext;
@@ -59,7 +63,6 @@ namespace Pinetime {
         lv_obj_t* txtArtist;
         lv_obj_t* txtTrack;
         lv_obj_t* txtPlayPause;
-        lv_obj_t* labelTime;
 
         lv_obj_t* imgDisc;
         lv_obj_t* imgDiscAnim;
@@ -68,9 +71,6 @@ namespace Pinetime {
         lv_obj_t* barTrackDuration;
 
         lv_style_t btn_style;
-
-        /** For the spinning disc animation */
-        bool frameB;
 
         Pinetime::Controllers::MusicService& musicService;
         const Controllers::Ble& bleController;
@@ -84,10 +84,10 @@ namespace Pinetime {
         int totalLength = 0;
         /** Current position in seconds */
         int currentPosition;
-        /** Last time an animation update or timer was incremented */
-        TickType_t lastIncrement = 0;
 
         bool playing;
+
+        bool lastConnected = false;
 
         lv_task_t* taskRefresh;
 
@@ -104,9 +104,7 @@ namespace Pinetime {
       static constexpr const char* icon = Screens::Symbols::music;
 
       static Screens::Screen* Create(AppControllers& controllers) {
-        return new Screens::Music(*controllers.musicService,
-                                  controllers.bleController,
-                                  controllers.dateTimeController);
+        return new Screens::Music(*controllers.musicService, controllers.bleController, controllers.dateTimeController);
       };
 
       static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {
