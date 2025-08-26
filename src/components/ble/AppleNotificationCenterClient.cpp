@@ -210,7 +210,8 @@ std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId
                                                                             {"com.apple.reminders", Symbols::remindersLogo},
                                                                             {"com.apple.shortcuts", Symbols::shortcutsLogo},
                                                                             {"com.apple.Music", Symbols::music},
-                                                                            {"com.apple.mobilephone", Symbols::phone}};
+                                                                            {"com.apple.mobilephone", Symbols::phone},
+                                                                            {"com.apple.Passbook", Symbols::applePayLogo}};
 
   auto it = appIdToEmoji.find(appId);
   if (it != appIdToEmoji.end()) {

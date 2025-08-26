@@ -8,6 +8,8 @@
 #include <components/motion/MotionController.h>
 #include "displayapp/Controllers.h"
 #include "displayapp/apps/Apps.h"
+#include "Symbols.h"
+#include "systemtask/WakeLock.h"
 
 namespace Pinetime {
   namespace Applications {
@@ -15,20 +17,19 @@ namespace Pinetime {
 
       class Motion : public Screen {
       public:
-        Motion(Controllers::MotionController& motionController);
+        Motion(Controllers::MotionController& motionController, System::SystemTask& systemTask);
         ~Motion() override;
 
         void Refresh() override;
 
       private:
         Controllers::MotionController& motionController;
+        Pinetime::System::WakeLock wakeLock;
         lv_obj_t* chart;
         lv_chart_series_t* ser1;
         lv_chart_series_t* ser2;
         lv_chart_series_t* ser3;
         lv_obj_t* label;
-
-        lv_obj_t* labelStep;
         lv_task_t* taskRefresh;
       };
     }
@@ -36,10 +37,10 @@ namespace Pinetime {
     template <>
     struct AppTraits<Apps::Motion> {
       static constexpr Apps app = Apps::Motion;
-      static constexpr const char* icon = "M";
+      static constexpr const char* icon = Screens::Symbols::graph;
 
       static Screens::Screen* Create(AppControllers& controllers) {
-        return new Screens::Motion(controllers.motionController);
+        return new Screens::Motion(controllers.motionController, *controllers.systemTask);
       };
 
       static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {

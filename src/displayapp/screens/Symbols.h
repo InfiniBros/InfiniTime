@@ -46,6 +46,7 @@ namespace Pinetime {
         static constexpr const char* coffee = "\xEF\x9E\xB6"; // unused currently, still cool emoji so ill keep it
         static constexpr const char* rotate = "\xEF\x8b\xb1"; // used for uptime showcase in Activity Bar
         static constexpr const char* microchip = "\xEF\x8B\x9B";
+        static constexpr const char* graph = "\xEF\x88\x81";
 
         // symbols for ANCS notifications
         static constexpr const char* appleLogo = "\xEF\x85\xB9";
@@ -65,6 +66,7 @@ namespace Pinetime {
         static constexpr const char* remindersLogo = "\xEF\x83\x8A";
         static constexpr const char* shortcutsLogo = "\xEF\x97\xBD";
         static constexpr const char* birthdayLogo = "\xEF\x87\xBD";
+        static constexpr const char* applePayLogo = "\xEF\x90\x95";
 
         // fontawesome_weathericons.c
         // static constexpr const char* sun = "\xEF\x86\x85";
