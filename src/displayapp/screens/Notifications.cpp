@@ -364,8 +364,8 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       lv_obj_set_style_local_text_font(alert_caller, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_bold_40);
       lv_obj_set_style_local_text_color(alert_caller, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
       lv_label_set_text(alert_caller, title);
-      lv_obj_set_width(alert_caller, 240);
       lv_label_set_long_mode(alert_caller, LV_LABEL_LONG_SROLL_CIRC);
+      lv_obj_set_width(alert_caller, 240);
       lv_obj_align(alert_caller, nullptr, LV_ALIGN_CENTER, 0, -50);
       lv_label_set_align(alert_caller, LV_LABEL_ALIGN_CENTER);
 
