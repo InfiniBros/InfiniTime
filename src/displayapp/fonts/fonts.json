@@ -18,6 +18,16 @@
       "size": 20,
       "patches": ["jetbrains_mono_bold_20.c_zero.patch", "jetbrains_mono_bold_20.c_M.patch"]
    },
+   "jetbrains_mono_bold_40": {
+      "sources": [
+         {
+            "file": "JetBrainsMono-Bold.ttf",
+            "range": "0x20-0x7e, 0x410-0x44f, 0xB0, 0xBF, 0xFFFD, 0x00E4, 0x00F6, 0x00FC, 0x00C4, 0x00D6, 0x00DC, 0x00DF, 0x20AC, 0x2018, 0x2019, 0x201E, 0x201C, 0x201D, 0x2026"
+         }
+      ],
+      "bpp": 1,
+      "size": 30
+   },
    "icons": {
       "sources": [
          {

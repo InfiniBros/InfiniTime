@@ -45,7 +45,7 @@ Notifications::Notifications(DisplayApp* app,
     validDisplay = false;
   }
   if (mode == Modes::Preview) {
-    //wakeLock.Lock();
+    // wakeLock.Lock();
     if (notification.category == Controllers::NotificationManager::Categories::IncomingCall) {
       motorController.StartCallRing();
     } else {
@@ -154,8 +154,8 @@ void Notifications::OnPreviewDismiss() {
 }
 
 bool Notifications::OnTouchEvent(Pinetime::Applications::TouchEvents event) {
-    if(mode == Modes::Preview){
-    interacted=true;
+  if (mode == Modes::Preview) {
+    interacted = true;
     OnPreviewInteraction();
   }
 
@@ -299,7 +299,7 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   auto pos = notif.find(' ');
   if (pos != std::string::npos) {
     symbol = notif.substr(0, pos);
-    rest   = notif.substr(pos + 1);
+    rest = notif.substr(pos + 1);
   } else {
     rest = notif;
   }
@@ -309,14 +309,14 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   lv_label_set_text(alert_symbol, symbol.c_str());
   lv_obj_set_style_local_text_color(alert_symbol, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
   lv_obj_set_style_local_text_font(alert_symbol, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
-  
+
   // Title (scrolling if long)
   lv_obj_t* alert_title = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text(alert_title, rest.c_str());
   lv_label_set_long_mode(alert_title, LV_LABEL_LONG_SROLL_CIRC);
   lv_obj_set_style_local_text_color(alert_title, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
   lv_obj_set_auto_realign(alert_title, true);
-  
+
   if (symbol != std::string("")) {
     lv_obj_set_hidden(alert_symbol, false);
     lv_obj_align(alert_symbol, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 16);
@@ -343,6 +343,7 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       lv_label_set_text(alert_subject, msg);
       break;
     case Controllers::NotificationManager::Categories::IncomingCall: {
+      /*
       lv_obj_set_height(subject_container, 108);
       lv_label_set_text_static(alert_title, "iPhone");
       lv_label_set_text_static(alert_subject, "Incoming call from");
@@ -352,6 +353,26 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       lv_label_set_long_mode(alert_caller, LV_LABEL_LONG_BREAK);
       lv_obj_set_width(alert_caller, LV_HOR_RES - 20);
       lv_label_set_text(alert_caller, msg);
+      */
+
+      lv_obj_set_hidden(subject_container, true);
+      lv_obj_set_hidden(alert_count, true);
+      lv_obj_set_hidden(alert_title, true);
+      lv_obj_set_hidden(alert_subject, true);
+
+      lv_obj_t* alert_caller = lv_label_create(lv_scr_act(), nullptr);
+      lv_obj_set_style_local_text_font(alert_caller, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_bold_40);
+      lv_obj_set_style_local_text_color(alert_caller, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
+      lv_label_set_text(alert_caller, title);
+      lv_obj_set_width(alert_caller, 240);
+      lv_label_set_long_mode(alert_caller, LV_LABEL_LONG_SROLL_CIRC);
+      lv_obj_align(alert_caller, nullptr, LV_ALIGN_CENTER, 0, -50);
+      lv_label_set_align(alert_caller, LV_LABEL_ALIGN_CENTER);
+
+      lv_obj_t* alert_subtitle = lv_label_create(lv_scr_act(), nullptr);
+      lv_label_set_text(alert_subtitle, msg);
+      lv_obj_align(alert_subtitle, alert_caller, LV_ALIGN_CENTER, 0, 30);
+      lv_label_set_align(alert_subtitle, LV_LABEL_ALIGN_CENTER);
 
       bt_accept = lv_btn_create(container, nullptr);
       bt_accept->user_data = this;
