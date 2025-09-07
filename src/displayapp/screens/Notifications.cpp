@@ -377,32 +377,35 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       bt_accept = lv_btn_create(container, nullptr);
       bt_accept->user_data = this;
       lv_obj_set_event_cb(bt_accept, CallEventHandler);
-      lv_obj_set_size(bt_accept, 76, 76);
-      lv_obj_align(bt_accept, nullptr, LV_ALIGN_IN_BOTTOM_RIGHT, 0, 0);
+      lv_obj_set_size(bt_accept, 80, 80);
+      lv_obj_align(bt_accept, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
       label_accept = lv_label_create(bt_accept, nullptr);
       lv_label_set_text_static(label_accept, Symbols::phone);
       lv_obj_set_style_local_text_font(label_accept, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
       lv_obj_set_style_local_bg_color(bt_accept, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::highlight);
+      lv_obj_set_style_local_radius(bt_accept, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
       bt_reject = lv_btn_create(container, nullptr);
       bt_reject->user_data = this;
       lv_obj_set_event_cb(bt_reject, CallEventHandler);
-      lv_obj_set_size(bt_reject, 76, 76);
-      lv_obj_align(bt_reject, nullptr, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+      lv_obj_set_size(bt_reject, 60, 60);
+      lv_obj_align(bt_reject, bt_accept, LV_ALIGN_CENTER, -80, 0);
       label_reject = lv_label_create(bt_reject, nullptr);
       lv_label_set_text_static(label_reject, Symbols::phoneSlash);
       lv_obj_set_style_local_text_font(label_reject, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
       lv_obj_set_style_local_bg_color(bt_reject, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+      lv_obj_set_style_local_radius(bt_reject, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
       bt_mute = lv_btn_create(container, nullptr);
       bt_mute->user_data = this;
       lv_obj_set_event_cb(bt_mute, CallEventHandler);
-      lv_obj_set_size(bt_mute, 76, 76);
-      lv_obj_align(bt_mute, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+      lv_obj_set_size(bt_mute, 60, 60);
+      lv_obj_align(bt_mute, bt_accept, LV_ALIGN_CENTER, 80, 0);
       label_mute = lv_label_create(bt_mute, nullptr);
       lv_label_set_text_static(label_mute, Symbols::volumMute);
       lv_obj_set_style_local_text_font(label_mute, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
       lv_obj_set_style_local_bg_color(bt_mute, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
+      lv_obj_set_style_local_radius(bt_mute, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     } break;
   }
 }
