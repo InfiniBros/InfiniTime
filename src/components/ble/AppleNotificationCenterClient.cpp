@@ -240,7 +240,8 @@ std::string AppleNotificationCenterClient::MapEmojiToSymbol(uint32_t codepoint) 
     {0x1F923, Symbols::rofl},         {0x1F60D, Symbols::heartEyes},   {0x1F605, Symbols::sweatSmile},    {0x1F62C, Symbols::grimace},
     {0x1F641, Symbols::slightFrown},  {0x2639, Symbols::frown},        {0x1F633, Symbols::flushed},       {0x1F635, Symbols::deadEyes},
     {0x1F620, Symbols::angry},        {0x1F621, Symbols::angry},       {0x1F92C, Symbols::angry},         {0x2764, Symbols::heartEmoji},
-    {0x1F64F, Symbols::prayingHands}, {0x1F91D, Symbols::handshake},   {0x270C, Symbols::peaceSign},      {0x1F595, Symbols::middleFinger}};
+    {0x1F64F, Symbols::prayingHands}, {0x1F91D, Symbols::handshake},   {0x270C, Symbols::peaceSign},      {0x1F595, Symbols::middleFinger},
+    {0x1F4F7, Symbols::camera},       {0x1F4F9, Symbols::videoCam},    {0x1F3A4, Symbols::microphone}};
 
   auto it = emojiToSymbol.find(codepoint);
   if (it != emojiToSymbol.end()) {

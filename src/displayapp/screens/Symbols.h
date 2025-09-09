@@ -111,6 +111,9 @@ namespace Pinetime {
         static constexpr const char* handshake = "\xEF\x8A\x5B";
         static constexpr const char* peaceSign = "\xEF\x89\x9B";
         static constexpr const char* middleFinger = "\xEF\xA0\x86";
+        static constexpr const char* camera = "\xEF\x80\xB0";
+        static constexpr const char* videoCam = "\xEF\x80\xBD";
+        static constexpr const char* microphone = "\xEF\x84\xB0";
 
         // fontawesome_weathericons.c
         // static constexpr const char* sun = "\xEF\x86\x85";
