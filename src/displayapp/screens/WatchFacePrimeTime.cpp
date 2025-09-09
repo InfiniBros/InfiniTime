@@ -20,18 +20,18 @@
 using namespace Pinetime::Applications::Screens;
 
 WatchFacePrimeTime::WatchFacePrimeTime(Controllers::DateTime& dateTimeController,
-                                   const Controllers::Battery& batteryController,
-                                   const Controllers::Ble& bleController,
-                                   const Controllers::AlarmController& alarmController,
-                                   Controllers::NotificationManager& notificationManager,
-                                   Controllers::Settings& settingsController,
-                                   Controllers::HeartRateController& heartRateController,
-                                   Controllers::MotionController& motionController,
-                                   Controllers::SimpleWeatherService& weatherService,
-                                   Controllers::MusicService& music,
-                                   Controllers::Timer& timer,
-                                   Controllers::InfiniSleepController& infiniSleepController,
-                                   Controllers::FS& filesystem)
+                                       const Controllers::Battery& batteryController,
+                                       const Controllers::Ble& bleController,
+                                       const Controllers::AlarmController& alarmController,
+                                       Controllers::NotificationManager& notificationManager,
+                                       Controllers::Settings& settingsController,
+                                       Controllers::HeartRateController& heartRateController,
+                                       Controllers::MotionController& motionController,
+                                       Controllers::SimpleWeatherService& weatherService,
+                                       Controllers::MusicService& music,
+                                       Controllers::Timer& timer,
+                                       Controllers::InfiniSleepController& infiniSleepController,
+                                       Controllers::FS& filesystem)
   : currentDateTime {{}},
     dateTimeController {dateTimeController},
     notificationManager {notificationManager},
@@ -39,7 +39,7 @@ WatchFacePrimeTime::WatchFacePrimeTime(Controllers::DateTime& dateTimeController
     heartRateController {heartRateController},
     motionController {motionController},
     weatherService {weatherService},
-    musicService (music),
+    musicService(music),
     timer {timer},
     infiniSleepController {infiniSleepController},
     statusIcons(batteryController, bleController, alarmController) {
@@ -49,7 +49,7 @@ WatchFacePrimeTime::WatchFacePrimeTime(Controllers::DateTime& dateTimeController
     filesystem.FileClose(&f);
     fontPrimeTime = lv_font_load("F:/fonts/primetime.bin");
   }
-  
+
   statusIcons.Create();
 
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
@@ -74,13 +74,13 @@ WatchFacePrimeTime::WatchFacePrimeTime(Controllers::DateTime& dateTimeController
   lv_obj_align(label_date, lv_scr_act(), LV_ALIGN_CENTER, 0, 50);
   lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GRAY);
 
-  labelActivityBar = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_text_fmt(labelActivityBar, "%s Not Playing", Symbols::music);
-  lv_obj_set_style_local_text_color(labelActivityBar, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::bgAlt);
-  lv_label_set_long_mode(labelActivityBar, LV_LABEL_LONG_SROLL_CIRC);
-  lv_obj_set_width(labelActivityBar, LV_HOR_RES - 12);
-  lv_label_set_align(labelActivityBar, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(labelActivityBar, lv_scr_act(), LV_ALIGN_CENTER, 0, 78);
+  activityBar = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_text_fmt(activityBar, "%s Not Playing", Symbols::music);
+  lv_obj_set_style_local_text_color(activityBar, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::bgAlt);
+  lv_label_set_long_mode(activityBar, LV_LABEL_LONG_SROLL_CIRC);
+  lv_obj_set_width(activityBar, LV_HOR_RES - 12);
+  lv_label_set_align(activityBar, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(activityBar, lv_scr_act(), LV_ALIGN_CENTER, 0, 78);
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, fontPrimeTime);
@@ -119,7 +119,7 @@ WatchFacePrimeTime::WatchFacePrimeTime(Controllers::DateTime& dateTimeController
 
 WatchFacePrimeTime::~WatchFacePrimeTime() {
   lv_task_del(taskRefresh);
-  
+
   if (fontPrimeTime != nullptr) {
     lv_font_free(fontPrimeTime);
   }
@@ -240,6 +240,8 @@ void WatchFacePrimeTime::Refresh() {
     lv_obj_realign(weatherIcon);
   }
 
+  // activity bar
+
   static constexpr uint32_t secondsInADay = 60 * 60 * 24;
   static constexpr uint32_t secondsInAnHour = 60 * 60;
   static constexpr uint32_t secondsInAMinute = 60;
@@ -251,27 +253,26 @@ void WatchFacePrimeTime::Refresh() {
   uint32_t uptimeMinutes = uptimeSeconds / secondsInAMinute;
   uptimeSeconds = uptimeSeconds % secondsInAMinute;
 
-  // activity bar
   if (infiniSleepController.IsEnabled()) {
-    lv_label_set_text_fmt(labelActivityBar, "%s Sleeping...", Symbols::bed);
+    lv_label_set_text_fmt(activityBar, "%s Sleeping...", Symbols::bed);
   } else if (timer.IsRunning()) {
     std::chrono::seconds secondsRemaining = std::chrono::duration_cast<std::chrono::seconds>(timer.GetTimeRemaining());
     uint8_t timerMinutes = (secondsRemaining.count() % 3600) / 60;
     uint8_t timerSeconds = secondsRemaining.count() % 60;
-    lv_label_set_text_fmt(labelActivityBar, "%s %d:%02d", Symbols::hourGlass, timerMinutes, timerSeconds);
+    lv_label_set_text_fmt(activityBar, "%s %d:%02d", Symbols::hourGlass, timerMinutes, timerSeconds);
   } else if (musicService.isPlaying()) {
     track = musicService.getTrack();
-    lv_label_set_text_fmt(labelActivityBar, "%s %s", Symbols::music, track.data());
+    lv_label_set_text_fmt(activityBar, "%s %s", Symbols::music, track.data());
   } else {
-    lv_label_set_text_fmt(labelActivityBar, "%s %02lud %02lu:%02lu:%02lu",
-                        Symbols::rotate,
-                        uptimeDays,
-                        uptimeHours,
-                        uptimeMinutes,
-                        uptimeSeconds);
-    lv_obj_realign(labelActivityBar);
+    lv_label_set_text_fmt(activityBar,
+                          "%s %02lud %02lu:%02lu:%02lu",
+                          Symbols::rotate,
+                          uptimeDays,
+                          uptimeHours,
+                          uptimeMinutes,
+                          uptimeSeconds);
   }
-  lv_obj_realign(labelActivityBar);
+  lv_obj_realign(activityBar);
 }
 
 bool WatchFacePrimeTime::IsAvailable(Pinetime::Controllers::FS& filesystem) {

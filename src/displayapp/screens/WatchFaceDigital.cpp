@@ -13,6 +13,9 @@
 #include "components/motion/MotionController.h"
 #include "components/ble/SimpleWeatherService.h"
 #include "components/settings/Settings.h"
+#include "displayapp/InfiniTimeTheme.h"
+#include "components/ble/MusicService.h"
+#include "components/timer/Timer.h"
 
 using namespace Pinetime::Applications::Screens;
 
@@ -24,7 +27,10 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
                                    Controllers::Settings& settingsController,
                                    Controllers::HeartRateController& heartRateController,
                                    Controllers::MotionController& motionController,
-                                   Controllers::SimpleWeatherService& weatherService)
+                                   Controllers::SimpleWeatherService& weatherService,
+                                   Controllers::MusicService& music,
+                                   Controllers::Timer& timer,
+                                   Controllers::InfiniSleepController& infiniSleepController)
   : currentDateTime {{}},
     dateTimeController {dateTimeController},
     notificationManager {notificationManager},
@@ -32,6 +38,9 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
     heartRateController {heartRateController},
     motionController {motionController},
     weatherService {weatherService},
+    musicService(music),
+    timer {timer},
+    infiniSleepController {infiniSleepController},
     statusIcons(batteryController, bleController, alarmController) {
 
   statusIcons.Create();
@@ -44,17 +53,17 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
   weatherIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(weatherIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
   lv_obj_set_style_local_text_font(weatherIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &fontawesome_weathericons);
-  lv_label_set_text(weatherIcon, "");
-  lv_obj_align(weatherIcon, nullptr, LV_ALIGN_IN_TOP_MID, -20, 50);
+  lv_label_set_text_static(weatherIcon, Symbols::ban);
+  lv_obj_align(weatherIcon, nullptr, LV_ALIGN_IN_TOP_MID, 0, 30);
   lv_obj_set_auto_realign(weatherIcon, true);
 
   temperature = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(temperature, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_label_set_text(temperature, "");
-  lv_obj_align(temperature, nullptr, LV_ALIGN_IN_TOP_MID, 20, 50);
+  lv_label_set_text_static(temperature, "--°C");
+  lv_obj_align(temperature, weatherIcon, LV_ALIGN_CENTER, 0, 25);
 
   label_date = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_align(label_date, lv_scr_act(), LV_ALIGN_CENTER, 0, 60);
+  lv_obj_align(label_date, lv_scr_act(), LV_ALIGN_CENTER, 0, 50);
   lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
@@ -87,6 +96,14 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
   lv_label_set_text_static(stepIcon, Symbols::shoe);
   lv_obj_set_style_local_text_font(stepIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
   lv_obj_align(stepIcon, stepValue, LV_ALIGN_OUT_LEFT_MID, -5, 0);
+
+  activityBar = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_text_fmt(activityBar, "%s Not Playing", Symbols::music);
+  lv_obj_set_style_local_text_color(activityBar, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_label_set_long_mode(activityBar, LV_LABEL_LONG_SROLL_CIRC);
+  lv_obj_set_width(activityBar, LV_HOR_RES - 12);
+  lv_label_set_align(activityBar, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(activityBar, lv_scr_act(), LV_ALIGN_CENTER, 0, 78);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
   Refresh();
@@ -135,10 +152,10 @@ void WatchFaceDigital::Refresh() {
       uint8_t day = dateTimeController.Day();
       if (settingsController.GetClockType() == Controllers::Settings::ClockType::H24) {
         lv_label_set_text_fmt(label_date,
-                              "%s %d %s %d",
-                              dateTimeController.DayOfWeekShortToString(),
+                              "%s, %02d.%02d.%d",
+                              dateTimeController.DayOfWeekShortToStringLow(dateTimeController.DayOfWeek()),
                               day,
-                              dateTimeController.MonthShortToString(),
+                              dateTimeController.Month(),
                               year);
       } else {
         lv_label_set_text_fmt(label_date,
@@ -155,12 +172,12 @@ void WatchFaceDigital::Refresh() {
   heartbeat = heartRateController.HeartRate();
   heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
   if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
-    if (heartbeatRunning.Get()) {
+    if (heartbeat.Get() > 0) {
       lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
       lv_label_set_text_fmt(heartbeatValue, "%d", heartbeat.Get());
     } else {
       lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-      lv_label_set_text_static(heartbeatValue, "");
+      lv_label_set_text_static(heartbeatValue, "--");
     }
 
     lv_obj_realign(heartbeatIcon);
@@ -193,4 +210,38 @@ void WatchFaceDigital::Refresh() {
     lv_obj_realign(temperature);
     lv_obj_realign(weatherIcon);
   }
+
+  // activity bar
+
+  static constexpr uint32_t secondsInADay = 60 * 60 * 24;
+  static constexpr uint32_t secondsInAnHour = 60 * 60;
+  static constexpr uint32_t secondsInAMinute = 60;
+  uint32_t uptimeSeconds = dateTimeController.Uptime().count();
+  uint32_t uptimeDays = (uptimeSeconds / secondsInADay);
+  uptimeSeconds = uptimeSeconds % secondsInADay;
+  uint32_t uptimeHours = uptimeSeconds / secondsInAnHour;
+  uptimeSeconds = uptimeSeconds % secondsInAnHour;
+  uint32_t uptimeMinutes = uptimeSeconds / secondsInAMinute;
+  uptimeSeconds = uptimeSeconds % secondsInAMinute;
+
+  if (infiniSleepController.IsEnabled()) {
+    lv_label_set_text_fmt(activityBar, "%s Sleeping...", Symbols::bed);
+  } else if (timer.IsRunning()) {
+    std::chrono::seconds secondsRemaining = std::chrono::duration_cast<std::chrono::seconds>(timer.GetTimeRemaining());
+    uint8_t timerMinutes = (secondsRemaining.count() % 3600) / 60;
+    uint8_t timerSeconds = secondsRemaining.count() % 60;
+    lv_label_set_text_fmt(activityBar, "%s %d:%02d", Symbols::hourGlass, timerMinutes, timerSeconds);
+  } else if (musicService.isPlaying()) {
+    track = musicService.getTrack();
+    lv_label_set_text_fmt(activityBar, "%s %s", Symbols::music, track.data());
+  } else {
+    lv_label_set_text_fmt(activityBar,
+                          "%s %02lud %02lu:%02lu:%02lu",
+                          Symbols::rotate,
+                          uptimeDays,
+                          uptimeHours,
+                          uptimeMinutes,
+                          uptimeSeconds);
+  }
+  lv_obj_realign(activityBar);
 }

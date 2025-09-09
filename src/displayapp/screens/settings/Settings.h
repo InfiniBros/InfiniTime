@@ -36,12 +36,12 @@ namespace Pinetime {
           {Symbols::eye, "Wake/Sleep", Apps::SettingWakeUp},
           {Symbols::shoe, "Steps", Apps::SettingSteps},
           {Symbols::home, "Watch face", Apps::SettingWatchFace},
-          
+
           {Symbols::batteryHalf, "Battery", Apps::BatteryInfo},
-          {Symbols::heartBeat, "HRM interval", Apps::SettingHeartRate},
+          {Symbols::heartBeat, "Heart rate", Apps::SettingHeartRate},
           {Symbols::check, "Firmware", Apps::FirmwareValidation},
           {Symbols::microchip, "System info", Apps::SysInfo},
-          
+
           {Symbols::clock, "Date & Time", Apps::SettingSetDateTime},
           {Symbols::clock, "Time format", Apps::SettingTimeFormat},
           {Symbols::cloudSunRain, "Weather", Apps::SettingWeatherFormat},
@@ -51,7 +51,7 @@ namespace Pinetime {
           //{Symbols::sliders, "Notif. str.", Apps::SettingNotifVibration},
           {Symbols::tachometer, "Shake Calib.", Apps::SettingShakeThreshold},
           //{Symbols::bluetooth, "Bluetooth", Apps::SettingBluetooth},
-          
+
           //{Symbols::none, "None", Apps::None},
           //{Symbols::none, "None", Apps::None},
         }};

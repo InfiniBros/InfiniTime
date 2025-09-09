@@ -36,7 +36,10 @@ namespace Pinetime {
                          Controllers::Settings& settingsController,
                          Controllers::HeartRateController& heartRateController,
                          Controllers::MotionController& motionController,
-                         Controllers::SimpleWeatherService& weather);
+                         Controllers::SimpleWeatherService& weather,
+                         Controllers::MusicService& music,
+                         Controllers::Timer& timer,
+                         Controllers::InfiniSleepController& infiniSleepController);
         ~WatchFaceDigital() override;
 
         void Refresh() override;
@@ -64,6 +67,9 @@ namespace Pinetime {
         lv_obj_t* notificationIcon;
         lv_obj_t* weatherIcon;
         lv_obj_t* temperature;
+        lv_obj_t* activityBar;
+
+        std::string track;
 
         Controllers::DateTime& dateTimeController;
         Controllers::NotificationManager& notificationManager;
@@ -71,6 +77,9 @@ namespace Pinetime {
         Controllers::HeartRateController& heartRateController;
         Controllers::MotionController& motionController;
         Controllers::SimpleWeatherService& weatherService;
+        Controllers::MusicService& musicService;
+        Controllers::Timer& timer;
+        Controllers::InfiniSleepController& infiniSleepController;
 
         lv_task_t* taskRefresh;
         Widgets::StatusIcons statusIcons;
@@ -91,7 +100,10 @@ namespace Pinetime {
                                              controllers.settingsController,
                                              controllers.heartRateController,
                                              controllers.motionController,
-                                             *controllers.weatherController);
+                                             *controllers.weatherController,
+                                             *controllers.musicService,
+                                             controllers.timer,
+                                             controllers.infiniSleepController);
       };
 
       static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {

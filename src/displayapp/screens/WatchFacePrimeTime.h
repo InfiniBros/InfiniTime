@@ -30,18 +30,18 @@ namespace Pinetime {
       class WatchFacePrimeTime : public Screen {
       public:
         WatchFacePrimeTime(Controllers::DateTime& dateTimeController,
-                         const Controllers::Battery& batteryController,
-                         const Controllers::Ble& bleController,
-                         const Controllers::AlarmController& alarmController,
-                         Controllers::NotificationManager& notificationManager,
-                         Controllers::Settings& settingsController,
-                         Controllers::HeartRateController& heartRateController,
-                         Controllers::MotionController& motionController,
-                         Controllers::SimpleWeatherService& weather,
-                         Controllers::MusicService& music,
-                         Controllers::Timer& timer,
-                         Controllers::InfiniSleepController& infiniSleepController,
-                         Controllers::FS& filesystem);
+                           const Controllers::Battery& batteryController,
+                           const Controllers::Ble& bleController,
+                           const Controllers::AlarmController& alarmController,
+                           Controllers::NotificationManager& notificationManager,
+                           Controllers::Settings& settingsController,
+                           Controllers::HeartRateController& heartRateController,
+                           Controllers::MotionController& motionController,
+                           Controllers::SimpleWeatherService& weather,
+                           Controllers::MusicService& music,
+                           Controllers::Timer& timer,
+                           Controllers::InfiniSleepController& infiniSleepController,
+                           Controllers::FS& filesystem);
         ~WatchFacePrimeTime() override;
 
         void Refresh() override;
@@ -68,7 +68,7 @@ namespace Pinetime {
         lv_obj_t* notificationIcon;
         lv_obj_t* weatherIcon;
         lv_obj_t* temperature;
-        lv_obj_t* labelActivityBar;
+        lv_obj_t* activityBar;
         lv_obj_t* icon_music;
         lv_obj_t* weatherLabel;
         lv_obj_t* label_battery_value;
@@ -99,18 +99,18 @@ namespace Pinetime {
 
       static Screens::Screen* Create(AppControllers& controllers) {
         return new Screens::WatchFacePrimeTime(controllers.dateTimeController,
-                                             controllers.batteryController,
-                                             controllers.bleController,
-                                             controllers.alarmController,
-                                             controllers.notificationManager,
-                                             controllers.settingsController,
-                                             controllers.heartRateController,
-                                             controllers.motionController,
-                                             *controllers.weatherController,
-                                             *controllers.musicService,
-                                             controllers.timer,
-                                             controllers.infiniSleepController,
-                                             controllers.filesystem);
+                                               controllers.batteryController,
+                                               controllers.bleController,
+                                               controllers.alarmController,
+                                               controllers.notificationManager,
+                                               controllers.settingsController,
+                                               controllers.heartRateController,
+                                               controllers.motionController,
+                                               *controllers.weatherController,
+                                               *controllers.musicService,
+                                               controllers.timer,
+                                               controllers.infiniSleepController,
+                                               controllers.filesystem);
       };
 
       static bool IsAvailable(Pinetime::Controllers::FS& filesystem) {
