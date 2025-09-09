@@ -209,11 +209,13 @@ std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId
                                                                             {"com.apple.MobileSMS", Symbols::imsgLogo},
                                                                             {"com.apple.reminders", Symbols::remindersLogo},
                                                                             {"com.apple.shortcuts", Symbols::shortcutsLogo},
+                                                                            {"com.birthday.countdown.app", Symbols::birthdayLogo},
                                                                             {"com.apple.Music", Symbols::music},
                                                                             {"com.apple.mobilephone", Symbols::phone},
                                                                             {"com.apple.Passbook", Symbols::applePayLogo},
                                                                             {"de.dkb.banking", Symbols::bankingLogo},
-                                                                            {"com.hevyapp.hevy", Symbols::hevyLogo}};
+                                                                            {"com.hevyapp.hevy", Symbols::hevyLogo},
+                                                                            {"com.microsoft.skype.teams", Symbols::teamsLogo}};
 
   auto it = appIdToEmoji.find(appId);
   if (it != appIdToEmoji.end()) {

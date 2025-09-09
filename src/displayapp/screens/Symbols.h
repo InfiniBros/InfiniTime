@@ -69,6 +69,7 @@ namespace Pinetime {
         static constexpr const char* applePayLogo = "\xEF\x90\x95";
         static constexpr const char* bankingLogo = "\xEF\x86\x9C";
         static constexpr const char* hevyLogo = "\xEF\x91\x8B";
+        static constexpr const char* teamsLogo = "\xEF\x94\x80";
 
         // fontawesome_weathericons.c
         // static constexpr const char* sun = "\xEF\x86\x85";
