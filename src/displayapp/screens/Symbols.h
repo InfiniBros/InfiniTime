@@ -71,6 +71,47 @@ namespace Pinetime {
         static constexpr const char* hevyLogo = "\xEF\x91\x8B";
         static constexpr const char* teamsLogo = "\xEF\x94\x80";
 
+        // static constexpr const char* x = "\x\x\x";
+        // emojis (also for ANCS)
+        static constexpr const char* thumbsUp = "\xEF\x85\xA4";
+        static constexpr const char* thumbsDown = "\xEF\x85\xA5";
+        static constexpr const char* smile = "\xEF\x84\x98";
+        static constexpr const char* tired = "\xEF\x97\x88";
+        static constexpr const char* openMouth = "\xEF\x97\x82";
+        static constexpr const char* wink = "\xEF\x93\x9A";
+        static constexpr const char* grin = "\xEF\x96\xB8";
+        static constexpr const char* sad = "\xEF\x96\xB4";
+        static constexpr const char* cry = "\xEF\x96\xB3";
+        static constexpr const char* rollingEyes = "\xEF\x96\xA5";
+        static constexpr const char* noMouth = "\xEF\x96\xA4";
+        static constexpr const char* neutralFace = "\xEF\x84\x9A";
+        static constexpr const char* grinSquint = "\xEF\x96\x9B";
+        static constexpr const char* grinSmile = "\xEF\x96\x9A";
+        static constexpr const char* grinOpenMouth = "\xEF\x96\x99";
+        static constexpr const char* blowingKiss = "\xEF\x96\x98";
+        static constexpr const char* kissGrin = "\xEF\x96\x97";
+        static constexpr const char* kiss = "\xEF\x96\x96";
+        static constexpr const char* grinWide = "\xEF\x96\x81";
+        static constexpr const char* winkTongue = "\xEF\x96\x8B";
+        static constexpr const char* squintTongue = "\xEF\x96\x8A";
+        static constexpr const char* grinTongue = "\xEF\x96\x89";
+        static constexpr const char* laugh = "\xEF\x96\x88";
+        static constexpr const char* grinStars = "\xEF\x96\x87";
+        static constexpr const char* rofl = "\xEF\x96\x86";
+        static constexpr const char* heartEyes = "\xEF\x96\x84";
+        static constexpr const char* sweatSmile = "\xEF\x96\x83";
+        static constexpr const char* grimace = "\xEF\x95\xBF";
+        static constexpr const char* slightFrown = "\xEF\x95\xBA";
+        static constexpr const char* frown = "\xEF\x84\x99";
+        static constexpr const char* flushed = "\xEF\x95\xB9";
+        static constexpr const char* deadEyes = "\xEF\x95\xA7";
+        static constexpr const char* angry = "\xEF\x95\x96";
+        static constexpr const char* heartEmoji = "\xEF\x80\x84";
+        static constexpr const char* prayingHands = "\xEF\x9A\x84";
+        static constexpr const char* handshake = "\xEF\x8A\x5B";
+        static constexpr const char* peaceSign = "\xEF\x89\x9B";
+        static constexpr const char* middleFinger = "\xEF\xA0\x86";
+
         // fontawesome_weathericons.c
         // static constexpr const char* sun = "\xEF\x86\x85";
         static constexpr const char* cloudSun = "\xEF\x9B\x84";

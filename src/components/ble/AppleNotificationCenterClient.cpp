@@ -229,6 +229,26 @@ std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId
   return Symbols::none;
 }
 
+std::string AppleNotificationCenterClient::MapEmojiToSymbol(uint32_t codepoint) {
+  static const std::unordered_map<uint32_t, std::string> emojiToSymbol = {
+    {0x1F44D, Symbols::thumbsUp},     {0x1F44E, Symbols::thumbsDown},  {0x1F642, Symbols::smile},         {0x1F62B, Symbols::tired},
+    {0x1F62E, Symbols::openMouth},    {0x1F609, Symbols::wink},        {0x1F60A, Symbols::grin},          {0x1F622, Symbols::sad},
+    {0x1F62D, Symbols::cry},          {0x1F644, Symbols::rollingEyes}, {0x1F636, Symbols::noMouth},       {0x1F610, Symbols::neutralFace},
+    {0x1F606, Symbols::grinSquint},   {0x1F604, Symbols::grinSmile},   {0x1F600, Symbols::grinOpenMouth}, {0x1F618, Symbols::blowingKiss},
+    {0x1F619, Symbols::kissGrin},     {0x1F617, Symbols::kiss},        {0x1F603, Symbols::grinWide},      {0x1F61C, Symbols::winkTongue},
+    {0x1F61D, Symbols::squintTongue}, {0x1F61B, Symbols::grinTongue},  {0x1F602, Symbols::laugh},         {0x1F929, Symbols::grinStars},
+    {0x1F923, Symbols::rofl},         {0x1F60D, Symbols::heartEyes},   {0x1F605, Symbols::sweatSmile},    {0x1F62C, Symbols::grimace},
+    {0x1F641, Symbols::slightFrown},  {0x2639, Symbols::frown},        {0x1F633, Symbols::flushed},       {0x1F635, Symbols::deadEyes},
+    {0x1F620, Symbols::angry},        {0x1F621, Symbols::angry},       {0x1F92C, Symbols::angry},         {0x2764, Symbols::heartEmoji},
+    {0x1F64F, Symbols::prayingHands}, {0x1F91D, Symbols::handshake},   {0x270C, Symbols::peaceSign},      {0x1F595, Symbols::middleFinger}};
+
+  auto it = emojiToSymbol.find(codepoint);
+  if (it != emojiToSymbol.end()) {
+    return it->second;
+  }
+  return Symbols::none;
+}
+
 void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
   if (event->notify_rx.attr_handle == notificationSourceHandle || event->notify_rx.attr_handle == notificationSourceDescriptorHandle) {
     NRF_LOG_INFO("ANCS Notification received");
@@ -571,10 +591,15 @@ std::string AppleNotificationCenterClient::DecodeUtf8String(os_mbuf* om, uint16_
         }
       }
 
-      if (validSequence && isInFontDefinition(codepoint)) {
-        decoded.append(utf8Char); // Append valid UTF-8 character
-      } else {
-        decoded.append("�"); // Replace unsupported
+      if (validSequence) {
+        auto symbol = MapEmojiToSymbol(codepoint);
+        if (isInFontDefinition(codepoint)) {
+          decoded.append(utf8Char);
+        } else if (symbol != Symbols::none) {
+          decoded.append(symbol);
+        } else {
+          decoded.append("�");
+        }
       }
       i += sequenceLength;
     }

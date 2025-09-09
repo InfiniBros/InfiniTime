@@ -68,6 +68,7 @@ namespace Pinetime {
       const ble_uuid16_t serviceChangedCharUuid = {BLE_UUID_TYPE_16, 0x2A05};
 
       static std::string AppIdToEmoji(const std::string& appId);
+      static std::string MapEmojiToSymbol(uint32_t codepoint);
 
       enum class Categories : uint8_t {
         Other = 0,
