@@ -343,17 +343,6 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       lv_label_set_text(alert_subject, msg);
       break;
     case Controllers::NotificationManager::Categories::IncomingCall: {
-      /*
-      lv_obj_set_height(subject_container, 108);
-      lv_label_set_text_static(alert_title, "iPhone");
-      lv_label_set_text_static(alert_subject, "Incoming call from");
-
-      lv_obj_t* alert_caller = lv_label_create(subject_container, nullptr);
-      lv_obj_align(alert_caller, alert_subject, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
-      lv_label_set_long_mode(alert_caller, LV_LABEL_LONG_BREAK);
-      lv_obj_set_width(alert_caller, LV_HOR_RES - 20);
-      lv_label_set_text(alert_caller, msg);
-      */
 
       lv_obj_set_hidden(subject_container, true);
       lv_obj_set_hidden(alert_count, true);
