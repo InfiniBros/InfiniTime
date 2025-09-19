@@ -112,6 +112,7 @@ void Sleep::UpdateDisplay() {
   if (infiniSleepController.IsAlerting()) {
     displayState = SleepDisplayState::Alarm;
   }
+
   // Draw the screen
   switch (displayState) {
     case SleepDisplayState::Alarm:
@@ -119,7 +120,11 @@ void Sleep::UpdateDisplay() {
       pageIndicator2.Create();
       break;
     case SleepDisplayState::Info:
-      DrawInfoScreen();
+      if (infiniSleepController.IsTrackerEnabled()) {
+        DrawSleepingScreen();
+      } else {
+        DrawInfoScreen();
+      }
       pageIndicator1.Create();
       break;
     case SleepDisplayState::Settings:
@@ -246,6 +251,77 @@ void Sleep::DrawAlarmScreen() {
   UpdateWakeAlarmTime();
 }
 
+void Sleep::DrawSleepingScreen() {
+  lv_obj_t* lblTime = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_text_font(lblTime, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
+  if (clockType == Controllers::Settings::ClockType::H24) {
+    lv_label_set_text_fmt(lblTime, "%02d:%02d", infiniSleepController.GetCurrentHour(), infiniSleepController.GetCurrentMinute());
+  } else {
+    lv_label_set_text_fmt(lblTime,
+                          "%02d:%02d",
+                          (infiniSleepController.GetCurrentHour() % 12 == 0) ? 12 : infiniSleepController.GetCurrentHour() % 12,
+                          infiniSleepController.GetCurrentMinute());
+  }
+  lv_obj_align(lblTime, lv_scr_act(), LV_ALIGN_CENTER, 0, -50);
+  lv_obj_set_style_local_text_color(lblTime, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+
+  label_alarm_time = lv_label_create(lv_scr_act(), nullptr);
+  if (infiniSleepController.GetWakeAlarm().isEnabled) {
+    if (clockType == Controllers::Settings::ClockType::H24) {
+      lv_label_set_text_fmt(label_alarm_time,
+                            "%s %02d:%02d",
+                            Symbols::alarmClock,
+                            infiniSleepController.GetWakeAlarm().hours,
+                            infiniSleepController.GetWakeAlarm().minutes);
+    } else {
+      lv_label_set_text_fmt(label_alarm_time,
+                            "%s %02d:%02d",
+                            Symbols::alarmClock,
+                            (infiniSleepController.GetWakeAlarm().hours % 12 == 0) ? 12 : infiniSleepController.GetWakeAlarm().hours % 12,
+                            infiniSleepController.GetWakeAlarm().minutes);
+    }
+  } else {
+    lv_label_set_text_fmt(label_alarm_time, "%s Not set", Symbols::alarmClock);
+  }
+  lv_obj_align(label_alarm_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 3);
+  lv_obj_set_style_local_text_color(label_alarm_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+
+  if (infiniSleepController.GetWakeAlarm().isEnabled) {
+    label_gradual_wake = lv_label_create(lv_scr_act(), nullptr);
+    if (infiniSleepController.infiniSleepSettings.graddualWake && infiniSleepController.infiniSleepSettings.naturalWake) {
+      lv_label_set_text_fmt(label_gradual_wake, "%s Pre & Natural", Symbols::sliders);
+    } else if (infiniSleepController.infiniSleepSettings.graddualWake) {
+      lv_label_set_text_fmt(label_gradual_wake, "%s PreWake", Symbols::sliders);
+    } else if (infiniSleepController.infiniSleepSettings.naturalWake) {
+      lv_label_set_text_fmt(label_gradual_wake, "%s Natural Wake", Symbols::sliders);
+    } else {
+      lv_label_set_text_fmt(label_gradual_wake, "%s Default", Symbols::sliders);
+    }
+    lv_obj_align(label_gradual_wake, lv_scr_act(), LV_ALIGN_CENTER, 0, 30);
+    lv_obj_set_style_local_text_color(label_gradual_wake,
+                                      LV_LABEL_PART_MAIN,
+                                      LV_STATE_DEFAULT,
+                                      infiniSleepController.IsEnabled() ? LV_COLOR_RED : LV_COLOR_WHITE);
+  }
+
+  // Start/Stop button
+  trackerToggleBtn = lv_btn_create(lv_scr_act(), nullptr);
+  trackerToggleBtn->user_data = this;
+  lv_obj_set_height(trackerToggleBtn, 50);
+  lv_obj_align(trackerToggleBtn, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+
+  // Tracker toggle button
+  trackerToggleLabel = lv_label_create(trackerToggleBtn, nullptr);
+  if (infiniSleepController.IsTrackerEnabled()) {
+    lv_label_set_text_static(trackerToggleLabel, "Stop");
+    lv_obj_set_style_local_bg_color(trackerToggleBtn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+  } else {
+    lv_label_set_text_static(trackerToggleLabel, "Start");
+    lv_obj_set_style_local_bg_color(trackerToggleBtn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
+  }
+  lv_obj_set_event_cb(trackerToggleBtn, btnEventHandler);
+}
+
 void Sleep::DrawInfoScreen() {
   lv_obj_t* lblTime = lv_label_create(lv_scr_act(), nullptr);
   if (clockType == Controllers::Settings::ClockType::H24) {
@@ -257,10 +333,7 @@ void Sleep::DrawInfoScreen() {
                           infiniSleepController.GetCurrentMinute());
   }
   lv_obj_align(lblTime, lv_scr_act(), LV_ALIGN_IN_TOP_MID, 0, 5);
-  lv_obj_set_style_local_text_color(lblTime,
-                                      LV_LABEL_PART_MAIN,
-                                      LV_STATE_DEFAULT,
-                                      infiniSleepController.IsEnabled() ? LV_COLOR_RED : LV_COLOR_WHITE);
+  lv_obj_set_style_local_text_color(lblTime, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
   // Total sleep time
   label_total_sleep = lv_label_create(lv_scr_act(), nullptr);
@@ -274,17 +347,19 @@ void Sleep::DrawInfoScreen() {
   lv_obj_align(label_sleep, lv_scr_act(), LV_ALIGN_CENTER, 0, -60);
   */
 
-  if(((desiredCycles * 90) % 60) == 0) {
+  if (((desiredCycles * 90) % 60) == 0) {
     lv_label_set_text_fmt(label_total_sleep, "%dh%02dm / %dh", totalMinutes / 60, totalMinutes % 60, (desiredCycles * 90) / 60);
   } else {
-    lv_label_set_text_fmt(label_total_sleep, "%dh%02dm / %dh%02dm", totalMinutes / 60, totalMinutes % 60, (desiredCycles * 90) / 60, (desiredCycles * 90) % 60);
+    lv_label_set_text_fmt(label_total_sleep,
+                          "%dh%02dm / %dh%02dm",
+                          totalMinutes / 60,
+                          totalMinutes % 60,
+                          (desiredCycles * 90) / 60,
+                          (desiredCycles * 90) % 60);
   }
 
   lv_obj_align(label_total_sleep, nullptr, LV_ALIGN_CENTER, 0, -60);
-  lv_obj_set_style_local_text_color(label_total_sleep,
-                                    LV_LABEL_PART_MAIN,
-                                    LV_STATE_DEFAULT,
-                                    infiniSleepController.IsEnabled() ? LV_COLOR_RED : LV_COLOR_WHITE);
+  lv_obj_set_style_local_text_color(label_total_sleep, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
   /* Sleep Cycles Info
   label_sleep_cycles = lv_label_create(lv_scr_act(), nullptr);
@@ -314,28 +389,25 @@ void Sleep::DrawInfoScreen() {
   lv_bar_set_range(sleepBar, 0, desiredSleepMinutes);
   lv_bar_set_value(sleepBar, totalSleepMinutes, LV_ANIM_OFF);
 
-  lv_obj_set_style_local_bg_color(sleepBar,
-                                  LV_BAR_PART_INDIC,
-                                  LV_STATE_DEFAULT,
-                                  infiniSleepController.IsEnabled() ? LV_COLOR_RED : LV_COLOR_WHITE);
+  lv_obj_set_style_local_bg_color(sleepBar, LV_BAR_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
   // Start time
-  //if (infiniSleepController.IsEnabled()) {
-    label_start_time = lv_label_create(lv_scr_act(), nullptr);
-    if (clockType == Controllers::Settings::ClockType::H24) {
-      lv_label_set_text_fmt(label_start_time,
-                            "Began at: %02d:%02d",
-                            infiniSleepController.prevSessionData.startTimeHours,
-                            infiniSleepController.prevSessionData.startTimeMinutes);
-    } else {
-      lv_label_set_text_fmt(
-        label_start_time,
-        "Began at: %02d:%02d",
-        (infiniSleepController.prevSessionData.startTimeHours % 12 == 0) ? 12 : infiniSleepController.prevSessionData.startTimeHours % 12,
-        infiniSleepController.prevSessionData.startTimeMinutes);
-    }
-    lv_obj_align(label_start_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_local_text_color(label_start_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, infiniSleepController.IsEnabled() ? LV_COLOR_RED : LV_COLOR_WHITE);
+  // if (infiniSleepController.IsEnabled()) {
+  label_start_time = lv_label_create(lv_scr_act(), nullptr);
+  if (clockType == Controllers::Settings::ClockType::H24) {
+    lv_label_set_text_fmt(label_start_time,
+                          "Began at: %02d:%02d",
+                          infiniSleepController.prevSessionData.startTimeHours,
+                          infiniSleepController.prevSessionData.startTimeMinutes);
+  } else {
+    lv_label_set_text_fmt(
+      label_start_time,
+      "Began at: %02d:%02d",
+      (infiniSleepController.prevSessionData.startTimeHours % 12 == 0) ? 12 : infiniSleepController.prevSessionData.startTimeHours % 12,
+      infiniSleepController.prevSessionData.startTimeMinutes);
+  }
+  lv_obj_align(label_start_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_style_local_text_color(label_start_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
   //}
 
   // The alarm info
@@ -356,10 +428,7 @@ void Sleep::DrawInfoScreen() {
     lv_label_set_text_static(label_alarm_time, "No alarm set");
   }
   lv_obj_align(label_alarm_time, label_start_time, LV_ALIGN_CENTER, 0, 25);
-  lv_obj_set_style_local_text_color(label_alarm_time,
-                                    LV_LABEL_PART_MAIN,
-                                    LV_STATE_DEFAULT,
-                                    infiniSleepController.IsEnabled() ? LV_COLOR_RED : LV_COLOR_WHITE);
+  lv_obj_set_style_local_text_color(label_alarm_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
   /* Wake Mode info
   if (infiniSleepController.GetWakeAlarm().isEnabled) {
@@ -371,7 +440,7 @@ void Sleep::DrawInfoScreen() {
     } else if (infiniSleepController.infiniSleepSettings.naturalWake) {
       lv_label_set_text_static(label_gradual_wake, "Wake Mode: Natural");
     } else {
-      lv_label_set_text_static(label_gradual_wake, "Wake Mode: Normal");
+      lv_label_set_text_static(label_gradual_wake, "Wake Mode: Default");
     }
     lv_obj_align(label_gradual_wake, lv_scr_act(), LV_ALIGN_CENTER, 0, 40);
     lv_obj_set_style_local_text_color(label_gradual_wake,
@@ -427,7 +496,7 @@ void Sleep::DrawSettingsScreen() {
                        ? "Both"
                      : infiniSleepController.infiniSleepSettings.graddualWake ? "Pre."
                      : infiniSleepController.infiniSleepSettings.naturalWake  ? "Nat."
-                                                                              : "Norm.";
+                                                                              : "Def.";
   lblWakeModeValue = lv_label_create(btnWakeMode, nullptr);
   lv_label_set_text_static(lblWakeModeValue, mode);
   lv_obj_align(lblWakeModeValue, nullptr, LV_ALIGN_CENTER, 0, 0);
@@ -537,7 +606,7 @@ void Sleep::OnButtonEvent(lv_obj_t* obj, lv_event_t event) {
 
         UpdateDisplay();
         return;
-}
+      }
     }
     if (obj == btnSuggestedAlarm) {
       // Set the suggested time
@@ -578,7 +647,7 @@ void Sleep::OnButtonEvent(lv_obj_t* obj, lv_event_t event) {
                            ? "Both"
                          : infiniSleepController.infiniSleepSettings.graddualWake ? "Pre."
                          : infiniSleepController.infiniSleepSettings.naturalWake  ? "Nat."
-                                                                                  : "Norm.";
+                                                                                  : "Def.";
       lv_label_set_text_static(lv_obj_get_child(obj, nullptr), mode);
       return;
     }
