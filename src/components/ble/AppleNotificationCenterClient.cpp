@@ -54,7 +54,7 @@ bool AppleNotificationCenterClient::OnDiscoveryEvent(uint16_t connectionHandle, 
     } else {
       NRF_LOG_INFO("ANCS not found");
       // DebugNotification("ANCS not found");
-      onServiceDiscovered(connectionHandle);
+      MaybeFinishDiscovery(connectionHandle);
     }
     return true;
   }
@@ -75,7 +75,7 @@ int AppleNotificationCenterClient::OnCharacteristicsDiscoveryEvent(uint16_t conn
   if (error->status != 0 && error->status != BLE_HS_EDONE) {
     NRF_LOG_INFO("ANCS Characteristic discovery ERROR");
     // DebugNotification("ANCS Characteristic discovery ERROR");
-    onServiceDiscovered(connectionHandle);
+    MaybeFinishDiscovery(connectionHandle);
     return 0;
   }
 
@@ -90,7 +90,7 @@ int AppleNotificationCenterClient::OnCharacteristicsDiscoveryEvent(uint16_t conn
       ble_gattc_disc_all_dscs(connectionHandle, dataSourceHandle, ancsEndHandle, OnANCSDescriptorDiscoveryEventCallback, this);
     }
     if (isCharacteristicDiscovered == isControlCharacteristicDiscovered && isCharacteristicDiscovered == isDataCharacteristicDiscovered) {
-      onServiceDiscovered(connectionHandle);
+      MaybeFinishDiscovery(connectionHandle);
     }
   } else {
     if (characteristic != nullptr) {
@@ -157,7 +157,7 @@ int AppleNotificationCenterClient::OnDescriptorDiscoveryEventCallback(uint16_t c
       // DebugNotification(errorStr);
     }
     if (isDescriptorFound == isDataDescriptorFound)
-      onServiceDiscovered(connectionHandle);
+      MaybeFinishDiscovery(connectionHandle);
   }
   return 0;
 }
@@ -168,12 +168,17 @@ int AppleNotificationCenterClient::OnNewAlertSubcribe(uint16_t connectionHandle,
   if (error->status == 0) {
     NRF_LOG_INFO("ANCS New alert subscribe OK");
     // DebugNotification("ANCS New alert subscribe OK");
+
+    // Mark subscriptions complete only after both CCCDs are known
+    if (notificationSourceDescriptorHandle != 0 && dataSourceDescriptorHandle != 0) {
+      subscriptionsDone = true;
+    }
   } else {
     NRF_LOG_INFO("ANCS New alert subscribe ERROR");
     // DebugNotification("ANCS New alert subscribe ERROR");
   }
   if (isDescriptorFound == isControlDescriptorFound && isDescriptorFound == isDataDescriptorFound)
-    onServiceDiscovered(connectionHandle);
+    MaybeFinishDiscovery(connectionHandle);
 
   return 0;
 }
@@ -191,6 +196,13 @@ int AppleNotificationCenterClient::OnControlPointWrite(uint16_t /*connectionHand
     // DebugNotification(errorStr);
   }
   return 0;
+}
+
+void AppleNotificationCenterClient::MaybeFinishDiscovery(uint16_t connectionHandle) {
+  if (isCharacteristicDiscovered && isControlCharacteristicDiscovered && isDataCharacteristicDiscovered && isDescriptorFound &&
+      isControlDescriptorFound && isDataDescriptorFound && subscriptionsDone) {
+    onServiceDiscovered(connectionHandle);
+  }
 }
 
 std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId) {
@@ -511,6 +523,7 @@ void AppleNotificationCenterClient::Reset() {
   isControlDescriptorFound = false;
   isDataCharacteristicDiscovered = false;
   isDataDescriptorFound = false;
+  subscriptionsDone = false;
 
   notifications.clear();
 }
