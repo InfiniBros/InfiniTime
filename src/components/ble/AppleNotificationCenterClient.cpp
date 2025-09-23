@@ -253,144 +253,151 @@ std::string AppleNotificationCenterClient::MapEmojiToSymbol(uint32_t codepoint) 
 void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
   if (event->notify_rx.attr_handle == notificationSourceHandle || event->notify_rx.attr_handle == notificationSourceDescriptorHandle) {
     NRF_LOG_INFO("ANCS Notification received");
-    uint8_t eventId;
-    uint8_t eventFlags;
-    uint8_t category;
-    uint8_t categoryCount;
-    uint32_t notificationUuid;
 
-    os_mbuf_copydata(event->notify_rx.om, 0, 1, &eventId);
-    os_mbuf_copydata(event->notify_rx.om, 1, 1, &eventFlags);
-    os_mbuf_copydata(event->notify_rx.om, 2, 1, &category);
-    os_mbuf_copydata(event->notify_rx.om, 3, 1, &categoryCount);
-    os_mbuf_copydata(event->notify_rx.om, 4, 4, &notificationUuid);
+    AncsNotification ancsNotif;
 
-    bool silent = (eventFlags & static_cast<uint8_t>(EventFlags::Silent)) != 0;
-    // bool important = eventFlags & static_cast<uint8_t>(EventFlags::Important);
-    bool preExisting = (eventFlags & static_cast<uint8_t>(EventFlags::PreExisting)) != 0;
-    // bool positiveAction = eventFlags & static_cast<uint8_t>(EventFlags::PositiveAction);
-    // bool negativeAction = eventFlags & static_cast<uint8_t>(EventFlags::NegativeAction);
+    os_mbuf_copydata(event->notify_rx.om, 0, 1, &ancsNotif.eventId);
+    os_mbuf_copydata(event->notify_rx.om, 1, 1, &ancsNotif.eventFlags);
+    os_mbuf_copydata(event->notify_rx.om, 2, 1, &ancsNotif.category);
+    // Can be used to see how many grouped notifications are present
+    // os_mbuf_copydata(event->notify_rx.om, 3, 1, &categoryCount);
+    os_mbuf_copydata(event->notify_rx.om, 4, 4, &ancsNotif.uuid);
 
-    AncsNotitfication ancsNotif;
-    ancsNotif.eventId = eventId;
-    ancsNotif.eventFlags = eventFlags;
-    ancsNotif.category = category;
-    ancsNotif.uuid = notificationUuid;
+    // bool silent = (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::Silent)) != 0;
+    //  bool important = eventFlags & static_cast<uint8_t>(EventFlags::Important);
+    // bool preExisting = (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::PreExisting)) != 0;
+    //  bool positiveAction = eventFlags & static_cast<uint8_t>(EventFlags::PositiveAction);
+    //  bool negativeAction = eventFlags & static_cast<uint8_t>(EventFlags::NegativeAction);
 
-    while (notifications.size() > 6) {
-      notifications.erase(notifications.begin());
-    }
-
-    if (notifications.contains(notificationUuid)) {
-      notifications[notificationUuid] = ancsNotif;
-    } else if (!silent) {
-      notifications.insert({notificationUuid, ancsNotif});
-    }
-
-    if (preExisting || eventId != static_cast<uint8_t>(EventIds::Added) || silent) {
+    // If notification was removed, we remove it from the notifications map
+    if (ancsNotif.eventId == static_cast<uint8_t>(EventIds::Removed) && notifications.contains(ancsNotif.uuid)) {
+      notifications.erase(ancsNotif.uuid);
+      NRF_LOG_INFO("ANCS Notification removed: %d", ancsNotif.uuid);
       return;
     }
 
+    // If the notification is pre-existing, or if it is a silent notification, we do not add it to the list
+    if (notifications.contains(ancsNotif.uuid) || (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::Silent)) != 0 ||
+        (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::PreExisting)) != 0) {
+      return;
+    }
+
+    // If new notification, add it to the notifications
+    if (ancsNotif.eventId == static_cast<uint8_t>(EventIds::Added) &&
+        (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::Silent)) == 0) {
+      notifications.insert({ancsNotif.uuid, ancsNotif});
+    } else {
+      // If the notification is not added, we ignore it
+      NRF_LOG_INFO("ANCS Notification not added, ignoring: %d", ancsNotif.uuid);
+      return;
+    }
+
+    // The 6 is from TotalNbNotifications in NotificationManager.h + 1
+    while (notifications.size() > 100) {
+      notifications.erase(notifications.begin());
+    }
+
+    // if (notifications.contains(ancsNotif.uuid)) {
+    //   notifications[ancsNotif.uuid] = ancsNotif;
+    // } else {
+    //   notifications.insert({ancsNotif.uuid, ancsNotif});
+    // }
+
     // Request ANCS more info
+    // The +4 is for the "..." at the end of the string
     uint8_t titleSize = maxTitleSize + 4;
     uint8_t subTitleSize = maxSubtitleSize + 4;
     uint8_t messageSize = maxMessageSize + 4;
-    BYTE request[16];
+    BYTE request[17];
     request[0] = 0x00; // Command ID: Get Notification Attributes
-    request[1] = (uint8_t) (notificationUuid & 0xFF);
-    request[2] = (uint8_t) ((notificationUuid >> 8) & 0xFF);
-    request[3] = (uint8_t) ((notificationUuid >> 16) & 0xFF);
-    request[4] = (uint8_t) ((notificationUuid >> 24) & 0xFF);
+    request[1] = static_cast<uint8_t>(ancsNotif.uuid & 0xFF);
+    request[2] = static_cast<uint8_t>((ancsNotif.uuid >> 8) & 0xFF);
+    request[3] = static_cast<uint8_t>((ancsNotif.uuid >> 16) & 0xFF);
+    request[4] = static_cast<uint8_t>((ancsNotif.uuid >> 24) & 0xFF);
     request[5] = 0x01; // Attribute ID: Title
     // request[6] = 0x00;
-    request[6] = (titleSize & 0xFF);
-    request[7] = ((titleSize >> 8) & 0xFF);
+    request[6] = static_cast<uint8_t>(titleSize & 0xFF);
+    request[7] = static_cast<uint8_t>((titleSize >> 8) & 0xFF);
     request[8] = 0x02; // Attribute ID: Subtitle
-    request[9] = (subTitleSize & 0xFF);
-    request[10] = ((subTitleSize >> 8) & 0xFF);
+    request[9] = static_cast<uint8_t>(subTitleSize & 0xFF);
+    request[10] = static_cast<uint8_t>((subTitleSize >> 8) & 0xFF);
     request[11] = 0x03; // Attribute ID: Message
-    request[12] = (messageSize & 0xFF);
-    request[13] = ((messageSize >> 8) & 0xFF);
-    request[14] = 0x0;  // [ADDED] Attribute ID: AppIdentifier
-    request[15] = 0x00; // no max length parameter
+    request[12] = static_cast<uint8_t>(messageSize & 0xFF);
+    request[13] = static_cast<uint8_t>((messageSize >> 8) & 0xFF);
+    request[14] = 0x00; // AppId
+    request[15] = 0x00; // no length restriction (LSB)
+    request[16] = 0x00; // no length restriction (MSB)
 
     ble_gattc_write_flat(event->notify_rx.conn_handle, controlPointHandle, request, sizeof(request), OnControlPointWriteCallback, this);
-
-    // NotificationManager::Notification notif;
-    // char uuidStr[55];
-    // snprintf(uuidStr, sizeof(uuidStr), "iOS Notif.:%08lx\nEvID: %d\nCat: %d\nFlags: %d", notificationUuid, eventId, category,
-    // eventFlags); notif.message = std::array<char, 101> {}; std::strncpy(notif.message.data(), uuidStr, notif.message.size() - 1);
-    // notif.message[10] = '\0';                       // Seperate Title and Message
-    // notif.message[notif.message.size() - 1] = '\0'; // Ensure null-termination
-    // notif.size = std::min(std::strlen(uuidStr), notif.message.size());
-    // notif.category = Pinetime::Controllers::NotificationManager::Categories::SimpleAlert;
-    // notificationManager.Push(std::move(notif));
-
-    // systemTask.PushMessage(Pinetime::System::Messages::OnNewNotification);
-    // DebugNotification("ANCS Notification received");
   } else if (event->notify_rx.attr_handle == dataSourceHandle || event->notify_rx.attr_handle == dataSourceDescriptorHandle) {
+    uint16_t titleSize;
+    uint16_t subTitleSize;
+    uint16_t messageSize;
     uint32_t notificationUid;
-    os_mbuf_copydata(event->notify_rx.om, 1, 4, &notificationUid);
+    uint16_t appIdSize;
 
-    AncsNotitfication ancsNotif;
+    os_mbuf_copydata(event->notify_rx.om, 1, 4, &notificationUid);
+    os_mbuf_copydata(event->notify_rx.om, 6, 2, &titleSize);
+    os_mbuf_copydata(event->notify_rx.om, 8 + titleSize + 1, 2, &subTitleSize);
+    os_mbuf_copydata(event->notify_rx.om, 8 + titleSize + 1 + 2 + subTitleSize + 1, 2, &messageSize);
+    os_mbuf_copydata(event->notify_rx.om, 8 + titleSize + 1 + 2 + subTitleSize + 1 + 2 + messageSize + 1, 2, &appIdSize);
+
+    AncsNotification ancsNotif;
     ancsNotif.uuid = 0;
+
+    // Check if the notification is in the session
+    if (notifications.contains(notificationUid)) {
+      if (notifications[notificationUid].isProcessed) {
+        // If the notification is already processed, we ignore it
+        NRF_LOG_INFO("Notification with UID %d already processed, ignoring", notificationUid);
+        return;
+      }
+    } else {
+      // If the notification is not in the session, we ignore it
+      NRF_LOG_INFO("Notification with UID %d not found in session, ignoring", notificationUid);
+      return;
+    }
+
     if (notifications.contains(notificationUid)) {
       ancsNotif = notifications[notificationUid];
+    } else {
+      // If the Notification source didn't add it earlier, then don't process it
+      NRF_LOG_INFO("Notification with UID %d not found in notifications map, ignoring datasource", notificationUid);
+      return;
     }
 
-    std::string decodedAppId;
-    std::string decodedTitle;
-    std::string decodedSubTitle;
-    std::string decodedMessage;
+    std::string decodedTitle = DecodeUtf8String(event->notify_rx.om, titleSize, 8);
 
-    // Walk through attributes as per ANCS spec
-    size_t offset = 5; // after UID (1 + 4 bytes)
-    while (offset < OS_MBUF_PKTLEN(event->notify_rx.om)) {
-      uint8_t attrId;
-      uint16_t attrLen;
+    std::string decodedSubTitle = DecodeUtf8String(event->notify_rx.om, subTitleSize, 8 + titleSize + 1 + 2);
 
-      if (os_mbuf_copydata(event->notify_rx.om, offset, 1, &attrId) != 0)
-        break;
-      if (os_mbuf_copydata(event->notify_rx.om, offset + 1, 2, &attrLen) != 0)
-        break;
+    std::string decodedMessage = DecodeUtf8String(event->notify_rx.om, messageSize, 8 + titleSize + 1 + 2 + subTitleSize + 1 + 2);
 
-      std::string value = DecodeUtf8String(event->notify_rx.om, attrLen, offset + 3);
+    std::string decodedAppId =
+      DecodeUtf8String(event->notify_rx.om, appIdSize, 8 + titleSize + 1 + 2 + subTitleSize + 1 + 2 + messageSize + 1 + 2);
 
-      switch (attrId) {
-        case 0x00:
-          decodedAppId = value;
-          break;
-        case 0x01:
-          decodedTitle = value;
-          break;
-        case 0x02:
-          decodedSubTitle = value;
-          break;
-        case 0x03:
-          decodedMessage = value;
-          break;
-      }
+    // Debug event ids ands flags by putting them at front of message (in int format)
+    // decodedMessage = std::to_string(ancsNotif.uuid) + " " + decodedMessage;
 
-      offset += 3 + attrLen;
-    }
-
-    NRF_LOG_INFO("Decoded AppId: %s", decodedAppId.c_str());
     NRF_LOG_INFO("Decoded Title: %s", decodedTitle.c_str());
     NRF_LOG_INFO("Decoded SubTitle: %s", decodedSubTitle.c_str());
-    NRF_LOG_INFO("Decoded Msg: %s", decodedMessage.c_str());
 
     bool incomingCall = ancsNotif.uuid != 0 && ancsNotif.category == static_cast<uint8_t>(Categories::IncomingCall);
 
     if (!incomingCall) {
-      if (decodedSubTitle.size() > maxSubtitleSize) {
+      if (titleSize >= maxTitleSize) {
+        decodedTitle.resize(maxTitleSize - 3);
+        decodedTitle += "...";
+      }
+
+      if (subTitleSize > maxSubtitleSize) {
         decodedSubTitle.resize(maxSubtitleSize - 3);
         decodedSubTitle += "...";
       }
-      if (decodedMessage.size() > maxMessageSize) {
-        decodedMessage.resize(maxMessageSize - 3);
-        decodedMessage += "...";
-      }
     }
+
+    titleSize = static_cast<uint16_t>(decodedTitle.size());
+    subTitleSize = static_cast<uint16_t>(decodedSubTitle.size());
+    messageSize = static_cast<uint16_t>(decodedMessage.size());
 
     NotificationManager::Notification notif;
     notif.ancsUid = notificationUid;
@@ -398,6 +405,7 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
     // notif.subtitle = decodedSubTitle;
 
     std::string notifStr;
+
     if (incomingCall) {
       notifStr = decodedTitle + "\n" + decodedSubTitle;
     } else if (decodedSubTitle == "") {
@@ -406,12 +414,13 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
       notifStr = AppIdToEmoji(decodedAppId) + " " + decodedTitle + " - " + decodedSubTitle + "\n" + decodedMessage;
     }
 
-    if (notifStr.size() > 100) {
+    // Adjust notification if too long
+    if (notifStr.size() > NotificationManager::MessageSize) {
       notifStr.resize(97);
       notifStr += "...";
     }
 
-    notif.message = std::array<char, 101> {};
+    notif.message = std::array<char, NotificationManager::MessageSize + 1> {};
     std::strncpy(notif.message.data(), notifStr.c_str(), notif.message.size() - 1);
 
     size_t lineBreak = notifStr.find('\n');
@@ -424,14 +433,21 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
                                   : Pinetime::Controllers::NotificationManager::Categories::SimpleAlert;
 
     notificationManager.Push(std::move(notif));
-    systemTask.PushMessage(Pinetime::System::Messages::OnNewNotification);
+
+    // Only ping the system task if the notification was added and ignore pre-existing notifications
+    if (ancsNotif.isProcessed == false && (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::Silent)) == 0 &&
+        (ancsNotif.eventFlags & static_cast<uint8_t>(EventFlags::PreExisting)) == 0) {
+      systemTask.PushMessage(Pinetime::System::Messages::OnNewNotification);
+    }
+
+    // Mark the notification as processed in the session
+    notifications[notificationUid].isProcessed = true;
   }
 }
 
 void AppleNotificationCenterClient::AcceptIncomingCall(uint32_t uuid) {
-  AncsNotitfication ancsNotif;
   if (notifications.contains(uuid)) {
-    ancsNotif = notifications[uuid];
+    const AncsNotification ancsNotif = notifications[uuid];
     if (ancsNotif.category != static_cast<uint8_t>(Categories::IncomingCall)) {
       return;
     }
@@ -441,17 +457,17 @@ void AppleNotificationCenterClient::AcceptIncomingCall(uint32_t uuid) {
 
   uint8_t value[6];
   value[0] = 0x02; // Command ID: Perform Notification Action
-  value[1] = (uint8_t) (uuid & 0xFF);
-  value[2] = (uint8_t) ((uuid >> 8) & 0xFF);
-  value[3] = (uint8_t) ((uuid >> 16) & 0xFF);
-  value[4] = (uint8_t) ((uuid >> 24) & 0xFF);
+  value[1] = static_cast<uint8_t>((uuid & 0xFF));
+  value[2] = static_cast<uint8_t>((uuid >> 8) & 0xFF);
+  value[3] = static_cast<uint8_t>((uuid >> 16) & 0xFF);
+  value[4] = static_cast<uint8_t>((uuid >> 24) & 0xFF);
   value[5] = 0x00; // Action ID: Positive Action
 
   ble_gattc_write_flat(systemTask.nimble().connHandle(), controlPointHandle, value, sizeof(value), OnControlPointWriteCallback, this);
 }
 
 void AppleNotificationCenterClient::RejectIncomingCall(uint32_t uuid) {
-  AncsNotitfication ancsNotif;
+  AncsNotification ancsNotif;
   if (notifications.contains(uuid)) {
     ancsNotif = notifications[uuid];
     if (ancsNotif.category != static_cast<uint8_t>(Categories::IncomingCall)) {
@@ -463,10 +479,10 @@ void AppleNotificationCenterClient::RejectIncomingCall(uint32_t uuid) {
 
   uint8_t value[6];
   value[0] = 0x02; // Command ID: Perform Notification Action
-  value[1] = (uint8_t) (uuid & 0xFF);
-  value[2] = (uint8_t) ((uuid >> 8) & 0xFF);
-  value[3] = (uint8_t) ((uuid >> 16) & 0xFF);
-  value[4] = (uint8_t) ((uuid >> 24) & 0xFF);
+  value[1] = static_cast<uint8_t>(uuid & 0xFF);
+  value[2] = static_cast<uint8_t>((uuid >> 8) & 0xFF);
+  value[3] = static_cast<uint8_t>((uuid >> 16) & 0xFF);
+  value[4] = static_cast<uint8_t>((uuid >> 24) & 0xFF);
   value[5] = 0x01; // Action ID: Negative Action
 
   ble_gattc_write_flat(systemTask.nimble().connHandle(), controlPointHandle, value, sizeof(value), OnControlPointWriteCallback, this);
@@ -506,6 +522,8 @@ void AppleNotificationCenterClient::Discover(uint16_t connectionHandle, std::fun
   ble_gattc_disc_svc_by_uuid(connectionHandle, &ancsUuid.u, OnDiscoveryEventCallback, this);
 }
 
+// This function is used for debugging purposes to log a message and push a notification
+// Used to test BLE debugging on production devices
 void AppleNotificationCenterClient::DebugNotification(const char* msg) const {
   NRF_LOG_INFO("[ANCS DEBUG] %s", msg);
 
@@ -537,7 +555,7 @@ std::string AppleNotificationCenterClient::DecodeUtf8String(os_mbuf* om, uint16_
   };
 
   for (uint16_t i = 0; i < size;) {
-    uint8_t byte;
+    uint8_t byte = 0;
     if (os_mbuf_copydata(om, offset + i, 1, &byte) != 0) {
       break; // Handle error in copying data (e.g., log or terminate processing)
     }
@@ -552,12 +570,13 @@ std::string AppleNotificationCenterClient::DecodeUtf8String(os_mbuf* om, uint16_
     } else { // Multi-byte UTF-8
       // Determine sequence length based on leading byte
       int sequenceLength = 0;
-      if ((byte & 0xE0) == 0xC0)
+      if ((byte & 0xE0) == 0xC0) {
         sequenceLength = 2; // 2-byte sequence
-      else if ((byte & 0xF0) == 0xE0)
+      } else if ((byte & 0xF0) == 0xE0) {
         sequenceLength = 3; // 3-byte sequence
-      else if ((byte & 0xF8) == 0xF0)
+      } else if ((byte & 0xF8) == 0xF0) {
         sequenceLength = 4; // 4-byte sequence
+      }
 
       if (i + sequenceLength > size) {
         decoded.append("�"); // Incomplete sequence, replace
@@ -570,18 +589,19 @@ std::string AppleNotificationCenterClient::DecodeUtf8String(os_mbuf* om, uint16_
       uint32_t codepoint = 0;
 
       for (int j = 0; j < sequenceLength; ++j) {
-        uint8_t nextByte;
+        uint8_t nextByte = 0;
         os_mbuf_copydata(om, offset + i + j, 1, &nextByte);
         utf8Char.push_back(static_cast<char>(nextByte));
 
         if (j == 0) {
           // Leading byte contributes significant bits
-          if (sequenceLength == 2)
+          if (sequenceLength == 2) {
             codepoint = nextByte & 0x1F;
-          else if (sequenceLength == 3)
+          } else if (sequenceLength == 3) {
             codepoint = nextByte & 0x0F;
-          else if (sequenceLength == 4)
+          } else if (sequenceLength == 4) {
             codepoint = nextByte & 0x07;
+          }
         } else {
           // Continuation bytes contribute lower bits
           if ((nextByte & 0xC0) != 0x80) {
