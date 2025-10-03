@@ -303,6 +303,15 @@ namespace Pinetime {
         return settings.stepsGoal;
       };
 
+      uint32_t GetLastTimerDuration(uint8_t index) const {
+        if (index >= 3) {
+          return settings.lastTimerDurations[0];
+        }
+        return settings.lastTimerDurations[index];
+      };
+
+      void AddTimerDuration(uint32_t duration);
+
       void SetBleRadioEnabled(bool enabled) {
         bleRadioEnabled = enabled;
       };
@@ -337,7 +346,7 @@ namespace Pinetime {
     private:
       Pinetime::Controllers::FS& fs;
 
-      static constexpr uint32_t settingsVersion = 0x0009;
+      static constexpr uint32_t settingsVersion = 0x000a;
 
       struct SettingsData {
         uint32_t version = settingsVersion;
@@ -365,6 +374,8 @@ namespace Pinetime {
         Controllers::BrightnessController::Levels brightLevel = Controllers::BrightnessController::Levels::Medium;
 
         bool dfuAndFsEnabledOnBoot = false;
+
+        uint32_t lastTimerDurations[3] = {300000, 600000, 900000};
       };
 
       SettingsData settings;
