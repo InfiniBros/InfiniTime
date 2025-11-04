@@ -19,8 +19,11 @@ static void btnEventHandler(lv_obj_t* obj, lv_event_t event) {
   }
 }
 
-Timer::Timer(Controllers::Timer& timerController, Controllers::MotorController& motorController, Controllers::Settings& settingsController)
-  : timer {timerController}, motorController {motorController}, settingsController {settingsController} {
+Timer::Timer(Controllers::Timer& timerController,
+             Controllers::MotorController& motorController,
+             Controllers::Settings& settingsController,
+             System::SystemTask& systemTask)
+  : timer {timerController}, motorController {motorController}, settingsController {settingsController}, wakeLock(systemTask) {
 
   // If timer is already running, skip launcher and go directly to timer UI
   if (timer.IsRunning()) {
@@ -71,7 +74,9 @@ void Timer::Refresh() {
   // Don't try to update timer display if we're in launcher mode (counters don't exist)
   if (launcherMode) {
     // If timer starts while in launcher, transition to timer UI
-    if (timer.IsRunning()) {
+    if (motorController.IsRinging()) {
+      SetTimerRinging();
+    } else if (timer.IsRunning()) {
       uint32_t durationMs = settingsController.GetLastTimerDuration(0);
       lv_style_reset(&btnStyle);
       lv_obj_clean(lv_scr_act());
@@ -80,7 +85,23 @@ void Timer::Refresh() {
     return;
   }
 
-  if (timer.IsRunning()) {
+  if (isRinging) {
+    DisplayTime();
+    if (motorController.IsRinging()) {
+      if (displaySeconds.Get().count() > 15) {
+        // Stop buzzing after 15 seconds, but continue the counter
+        motorController.StopTimerRing();
+        wakeLock.Release();
+      } else {
+        // Keep the screen awake during the first 15 seconds
+        wakeLock.Lock();
+      }
+    }
+    // Reset timer after 1 minute
+    if (displaySeconds.Get().count() > 60) {
+      Reset();
+    }
+  } else if (timer.IsRunning()) {
     DisplayTime();
   } else if (buttonPressing && xTaskGetTickCount() > pressTime + pdMS_TO_TICKS(150)) {
     lv_label_set_text_static(txtPlayPause, "Reset");
@@ -116,10 +137,11 @@ void Timer::SetTimerStopped() {
   if (launcherMode) {
     return;
   }
+  isRinging = false;
   minuteCounter.ShowControls();
   secondCounter.ShowControls();
   lv_label_set_text_static(txtPlayPause, "Start");
-  lv_obj_set_style_local_bg_color(btnPlayPause, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
+  lv_obj_set_style_local_bg_color(btnPlayPause, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, Colors::bgAlt);
 }
 
 void Timer::SetTimerRinging() {
@@ -127,6 +149,7 @@ void Timer::SetTimerRinging() {
     // Timer expired while in launcher mode - transition will happen in Refresh()
     return;
   }
+  isRinging = true;
   minuteCounter.HideControls();
   secondCounter.HideControls();
   lv_label_set_text_static(txtPlayPause, "Reset");
@@ -134,7 +157,10 @@ void Timer::SetTimerRinging() {
 }
 
 void Timer::ToggleRunning() {
-  if (timer.IsRunning()) {
+  if (isRinging) {
+    motorController.StopTimerRing();
+    Reset();
+  } else if (timer.IsRunning()) {
     DisplayTime();
     timer.StopTimer();
     SetTimerStopped();
@@ -152,6 +178,7 @@ void Timer::ToggleRunning() {
 }
 
 void Timer::Reset() {
+  timer.ResetExpiredTime();
   DisplayTime();
   SetTimerStopped();
 }
@@ -373,7 +400,7 @@ void Timer::OnLauncherButtonClicked(lv_obj_t* obj) {
     durationMs = settingsController.GetLastTimerDuration(2);
     autoStart = true;
   } else if (obj == btnCustom) {
-    durationMs = settingsController.GetLastTimerDuration(0);
+    durationMs = 0;
     autoStart = false;
   } else {
     return;

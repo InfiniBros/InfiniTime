@@ -33,7 +33,6 @@
 #include "displayapp/screens/Calculator.h"
 #include "displayapp/screens/Sleep.h"
 
-
 #include "drivers/Cst816s.h"
 #include "drivers/St7789.h"
 #include "drivers/Watchdog.h"
@@ -70,6 +69,7 @@ namespace {
 
   void TimerCallback(TimerHandle_t xTimer) {
     auto* dispApp = static_cast<DisplayApp*>(pvTimerGetTimerID(xTimer));
+    dispApp->SetTimerExpired();
     dispApp->PushMessage(Display::Messages::TimerDone);
   }
 }
@@ -301,8 +301,9 @@ void DisplayApp::Refresh() {
   if (xQueueReceive(msgQueue, &msg, queueTimeout) == pdTRUE) {
     switch (msg) {
       case Messages::OnChargingEvent:
-        if (batteryController.IsCharging() && (currentApp == Apps::Launcher || currentApp == Apps::Notifications || currentApp == Apps::QuickSettings ||
-            currentApp == Apps::Settings || currentApp == Apps::Clock)) {
+        if (batteryController.IsCharging() &&
+            (currentApp == Apps::Launcher || currentApp == Apps::Notifications || currentApp == Apps::QuickSettings ||
+             currentApp == Apps::Settings || currentApp == Apps::Clock)) {
           LoadNewScreen(Apps::BatteryInfo, DisplayApp::FullRefreshDirections::None);
           settingsController.SetNotificationStatus(Controllers::Settings::Notification::Off);
           forceAOD = true;
@@ -788,6 +789,10 @@ void DisplayApp::Register(Pinetime::Controllers::MusicService* musicService) {
 
 void DisplayApp::Register(Pinetime::Controllers::NavigationService* NavigationService) {
   this->controllers.navigationService = NavigationService;
+}
+
+void DisplayApp::SetTimerExpired() {
+  timer.SetExpiredTime();
 }
 
 void DisplayApp::ApplyBrightness() {

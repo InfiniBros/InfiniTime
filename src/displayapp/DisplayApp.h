@@ -82,6 +82,8 @@ namespace Pinetime {
       void Register(Pinetime::Controllers::MusicService* musicService);
       void Register(Pinetime::Controllers::NavigationService* NavigationService);
 
+      void SetTimerExpired();
+
     private:
       Pinetime::Drivers::St7789& lcd;
       const Pinetime::Drivers::Cst816S& touchPanel;

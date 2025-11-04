@@ -30,7 +30,7 @@ bool Timer::IsRunning() {
 }
 
 void Timer::SetExpiredTime() {
-  expired = xTimerGetExpiryTime(timer);
+  expired = xTaskGetTickCount();
 }
 
 void Timer::ResetExpiredTime() {

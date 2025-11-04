@@ -85,6 +85,7 @@
         "cfenv": "cpp",
         "format": "cpp",
         "__nullptr": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "__functional_base": "cpp"
     }
 }

@@ -61,14 +61,7 @@ namespace Pinetime {
         int colorIndex = 0;
       };
 
-      enum class HeartRateBackgroundMeasurementInterval : uint8_t {
-        Off,
-        Continuous,
-        OneMinute,
-        TwoMinutes,
-        FiveMinutes,
-        TenMinutes
-      };
+      enum class HeartRateBackgroundMeasurementInterval : uint8_t { Off, Continuous, OneMinute, TwoMinutes, FiveMinutes, TenMinutes };
 
       Settings(Pinetime::Controllers::FS& fs);
 
@@ -364,7 +357,7 @@ namespace Pinetime {
         }
         return settings.heartRateBackgroundPeriod;
       }
-      
+
       void SetNotifVibration(VibrationStrength strength) {
         if (strength != settings.notifVibration) {
           settingsChanged = true;
@@ -390,7 +383,6 @@ namespace Pinetime {
         }
         settings.chimeVibration = strength;
       };
-
 
       void SetDfuAndFsMode(DfuAndFsMode mode) {
         if (mode == GetDfuAndFsMode()) {
@@ -442,7 +434,7 @@ namespace Pinetime {
 
         CasioStyleG7710 casio;
 
-	PrideFlag prideFlag = PrideFlag::Gay;
+        PrideFlag prideFlag = PrideFlag::Gay;
 
         WatchFaceInfineat watchFaceInfineat;
 
@@ -451,11 +443,11 @@ namespace Pinetime {
 
         Controllers::BrightnessController::Levels brightLevel = Controllers::BrightnessController::Levels::Medium;
 
-        bool dfuAndFsEnabledOnBoot = false;
+        bool dfuAndFsEnabledOnBoot = true;
 
         uint32_t lastTimerDurations[3] = {300000, 600000, 900000};
 
-	uint16_t heartRateBackgroundPeriod = std::numeric_limits<uint16_t>::max(); // Disabled by default
+        uint16_t heartRateBackgroundPeriod = std::numeric_limits<uint16_t>::max(); // Disabled by default
 
         VibrationStrength notifVibration = VibrationStrength::Normal;
         VibrationStrength chimeVibration = VibrationStrength::Normal;

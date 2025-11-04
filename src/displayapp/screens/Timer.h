@@ -6,6 +6,8 @@
 #include "displayapp/widgets/Counter.h"
 #include "utility/DirtyValue.h"
 #include <lvgl/lvgl.h>
+#include "systemtask/WakeLock.h"
+#include "components/motor/MotorController.h"
 
 #include "components/timer/Timer.h"
 #include "components/settings/Settings.h"
@@ -15,7 +17,10 @@ namespace Pinetime::Applications {
   namespace Screens {
     class Timer : public Screen {
     public:
-      Timer(Controllers::Timer& timerController, Controllers::MotorController& motorController, Controllers::Settings& settingsController);
+      Timer(Controllers::Timer& timerController,
+            Controllers::MotorController& motorController,
+            Controllers::Settings& settingsController,
+            System::SystemTask& systemTask);
       ~Timer() override;
       void Refresh() override;
       void Reset();
@@ -38,6 +43,7 @@ namespace Pinetime::Applications {
       Pinetime::Controllers::Timer& timer;
       Pinetime::Controllers::MotorController& motorController;
       Pinetime::Controllers::Settings& settingsController;
+      Pinetime::System::WakeLock wakeLock;
 
       // Launcher UI elements
       lv_obj_t* btnRecent1 = nullptr;
@@ -63,6 +69,7 @@ namespace Pinetime::Applications {
       Widgets::Counter secondCounter = Widgets::Counter(0, 59, jetbrains_mono_76);
 
       bool buttonPressing = false;
+      bool isRinging = false;
       lv_coord_t maskPosition = 0;
       TickType_t pressTime = 0;
       Utility::DirtyValue<std::chrono::seconds> displaySeconds;
@@ -75,7 +82,7 @@ namespace Pinetime::Applications {
     static constexpr const char* icon = Screens::Symbols::hourGlass;
 
     static Screens::Screen* Create(AppControllers& controllers) {
-      return new Screens::Timer(controllers.timer, controllers.motorController, controllers.settingsController);
+      return new Screens::Timer(controllers.timer, controllers.motorController, controllers.settingsController, *controllers.systemTask);
     };
 
     static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {
