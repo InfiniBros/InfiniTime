@@ -50,6 +50,7 @@ namespace Pinetime {
           //{Symbols::sliders, "Chime strength", Apps::SettingChimeVibration},
           //{Symbols::sliders, "Notif. str.", Apps::SettingNotifVibration},
           {Symbols::tachometer, "Shake Calib.", Apps::SettingShakeThreshold},
+          {Symbols::shieldAlt, "Over-the-air", Apps::SettingOTA},
           //{Symbols::bluetooth, "Bluetooth", Apps::SettingBluetooth},
           
           //{Symbols::none, "None", Apps::None},

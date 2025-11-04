@@ -8,6 +8,7 @@ namespace Pinetime {
         static constexpr const char* batteryHalf = "\xEF\x89\x82";
         static constexpr const char* heartBeat = "\xEF\x88\x9E";
         static constexpr const char* bluetooth = "\xEF\x8A\x94";
+        static constexpr const char* shieldAlt = "\xEF\x8F\xAD";
         static constexpr const char* plug = "\xEF\x87\xA6";
         static constexpr const char* shoe = "\xEF\x95\x8B";
         static constexpr const char* clock = "\xEF\x80\x97";
@@ -47,6 +48,8 @@ namespace Pinetime {
         static constexpr const char* rotate = "\xEF\x8b\xb1"; // used for uptime showcase in Activity Bar
         static constexpr const char* microchip = "\xEF\x8B\x9B";
         static constexpr const char* graph = "\xEF\x88\x81";
+        static constexpr const char* clockRotateLeft = "\xEF\x87\x9A";
+        static constexpr const char* redo = "\xEF\x80\x9E";
 
         // symbols for ANCS notifications
         static constexpr const char* appleLogo = "\xEF\x85\xB9";
