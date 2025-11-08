@@ -146,9 +146,18 @@ void Timer::SetTimerStopped() {
 
 void Timer::SetTimerRinging() {
   if (launcherMode) {
-    // Timer expired while in launcher mode - transition will happen in Refresh()
-    return;
+    launcherMode = false;
+
+    // Clean up launcher UI
+    lv_style_reset(&btnStyle);
+    lv_obj_clean(lv_scr_act());
+
+    // Create the timer UI with the last duration
+    uint32_t durationMs = settingsController.GetLastTimerDuration(0);
+    CreateTimerUI(durationMs, false);
   }
+
+  // Now show the ringing state
   isRinging = true;
   minuteCounter.HideControls();
   secondCounter.HideControls();
