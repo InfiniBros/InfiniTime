@@ -37,7 +37,7 @@ TickType_t HeartRateTask::CurrentTaskDelay() {
   auto CalculateSleepTicks = [&]() {
     TickType_t elapsed = currentTime - measurementStartTime;
 
-    // Target system tick is the the elapsed sensor ticks multiplied by the sensor tick duration (i.e. the elapsed time)
+    // Target system tick is the elapsed sensor ticks multiplied by the sensor tick duration (i.e. the elapsed time)
     // multiplied by the system tick rate
     // Since the sensor tick duration is a whole number of milliseconds, we compute in milliseconds and then divide by 1000
     // To avoid the number of milliseconds overflowing a u32, we take a factor of 2 out of the divisor and dividend

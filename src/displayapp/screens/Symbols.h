@@ -48,8 +48,6 @@ namespace Pinetime {
         static constexpr const char* rotate = "\xEF\x8b\xb1"; // used for uptime showcase in Activity Bar
         static constexpr const char* microchip = "\xEF\x8B\x9B";
         static constexpr const char* graph = "\xEF\x88\x81";
-        static constexpr const char* clockRotateLeft = "\xEF\x87\x9A";
-        static constexpr const char* redo = "\xEF\x80\x9E";
 
         // symbols for ANCS notifications
         static constexpr const char* appleLogo = "\xEF\x85\xB9";

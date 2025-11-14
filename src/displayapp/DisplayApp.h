@@ -13,6 +13,7 @@
 #include "components/settings/Settings.h"
 #include "displayapp/screens/Screen.h"
 #include "components/timer/Timer.h"
+#include "components/stopwatch/StopWatchController.h"
 #include "components/alarm/AlarmController.h"
 #include "components/infinisleep/InfiniSleepController.h"
 #include "touchhandler/TouchHandler.h"
@@ -64,6 +65,7 @@ namespace Pinetime {
                  Controllers::Settings& settingsController,
                  Pinetime::Controllers::MotorController& motorController,
                  Pinetime::Controllers::MotionController& motionController,
+                 Pinetime::Controllers::StopWatchController& stopWatchController,
                  Pinetime::Controllers::AlarmController& alarmController,
                  Pinetime::Controllers::BrightnessController& brightnessController,
                  Pinetime::Controllers::TouchHandler& touchHandler,
@@ -97,6 +99,7 @@ namespace Pinetime {
       Pinetime::Controllers::Settings& settingsController;
       Pinetime::Controllers::MotorController& motorController;
       Pinetime::Controllers::MotionController& motionController;
+      Pinetime::Controllers::StopWatchController& stopWatchController;
       Pinetime::Controllers::AlarmController& alarmController;
       Pinetime::Controllers::BrightnessController& brightnessController;
       Pinetime::Controllers::TouchHandler& touchHandler;

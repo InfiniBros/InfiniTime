@@ -45,8 +45,6 @@ FirmwareValidation::FirmwareValidation(Pinetime::Controllers::FirmwareValidator&
   lv_label_set_align(labelIsValidated, LV_LABEL_ALIGN_CENTER);
   lv_obj_set_auto_realign(labelIsValidated, true);
   lv_label_set_recolor(labelIsValidated, true);
-  // lv_label_set_long_mode(labelIsValidated, LV_LABEL_LONG_BREAK);
-  // lv_obj_set_width(labelIsValidated, 240);
 
   if (validator.IsValidated()) {
     lv_label_set_text_static(labelIsValidated, "This firmware has\nbeen #00ff00 validated#");

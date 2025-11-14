@@ -1,9 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <bitset>
+#include <limits>
+#include <optional>
 #include "components/brightness/BrightnessController.h"
 #include "components/fs/FS.h"
 #include "displayapp/apps/Apps.h"
+#include <nrf_log.h>
 #include <optional>
 
 namespace Pinetime {
