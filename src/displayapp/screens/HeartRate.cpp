@@ -4,7 +4,6 @@
 
 #include "displayapp/DisplayApp.h"
 #include "displayapp/InfiniTimeTheme.h"
-#include <chrono>
 
 using namespace Pinetime::Applications::Screens;
 
@@ -12,13 +11,17 @@ namespace {
   const char* ToString(Pinetime::Controllers::HeartRateController::States s) {
     switch (s) {
       case Pinetime::Controllers::HeartRateController::States::NotEnoughData:
-        return "Hold wrist still";
+        return "Please wait...";
+      case Pinetime::Controllers::HeartRateController::States::Searching:
+        return "Searching...";
       case Pinetime::Controllers::HeartRateController::States::NoTouch:
         return "No touch detected";
-      case Pinetime::Controllers::HeartRateController::States::Running:
+      case Pinetime::Controllers::HeartRateController::States::Ready:
         return "Measuring...";
       case Pinetime::Controllers::HeartRateController::States::Stopped:
-        return "";
+        return "Stopped";
+      case Pinetime::Controllers::HeartRateController::States::Disabled:
+        return "Disabled";
     }
     return "";
   }
@@ -29,12 +32,9 @@ namespace {
   }
 }
 
-HeartRate::HeartRate(Controllers::HeartRateController& heartRateController,
-                     System::SystemTask& systemTask)
-  : heartRateController{heartRateController}, wakeLock{systemTask} {
-
-  bool isHrRunning = heartRateController.State() !=
-    Controllers::HeartRateController::States::Stopped;
+HeartRate::HeartRate(Controllers::HeartRateController& heartRateController, System::SystemTask& systemTask)
+  : heartRateController {heartRateController}, wakeLock(systemTask) {
+  bool isHrRunning = heartRateController.State() != Controllers::HeartRateController::States::Disabled;
 
   // create value label
   label_hr_value = lv_label_create(lv_scr_act(), nullptr);
@@ -59,7 +59,7 @@ HeartRate::HeartRate(Controllers::HeartRateController& heartRateController,
 
   label_status = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_status, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GRAY);
-  lv_label_set_text_static(label_status, ToString(Pinetime::Controllers::HeartRateController::States::NotEnoughData));
+  lv_label_set_text_static(label_status, ToString(Pinetime::Controllers::HeartRateController::States::Disabled));
 
   // heart icon above value
   heart = lv_label_create(lv_scr_act(), nullptr);
@@ -79,7 +79,9 @@ HeartRate::HeartRate(Controllers::HeartRateController& heartRateController,
 
   label_startStop = lv_label_create(btn_startStop, nullptr);
   UpdateStartStopButton(isHrRunning);
-  if (isHrRunning) wakeLock.Lock();
+  if (isHrRunning) {
+    wakeLock.Lock();
+  }
 
   // periodic refresh
   taskRefresh = lv_task_create(RefreshTaskCallback, 100, LV_TASK_PRIO_MID, this);
@@ -92,15 +94,14 @@ HeartRate::~HeartRate() {
 
 void HeartRate::RecenterHrmValue() {
   int w_text = lv_obj_get_width(label_hr_text);
-  lv_obj_align(label_hr_value, nullptr, LV_ALIGN_CENTER, -(w_text)/2, 0);
-  lv_obj_align(label_hr_text,  label_hr_value, LV_ALIGN_OUT_RIGHT_MID, 0, 9);
+  lv_obj_align(label_hr_value, nullptr, LV_ALIGN_CENTER, -(w_text) / 2, 0);
+  lv_obj_align(label_hr_text, label_hr_value, LV_ALIGN_OUT_RIGHT_MID, 0, 9);
 }
 
 void HeartRate::Refresh() {
 
   auto state = heartRateController.State();
-  if (state == Controllers::HeartRateController::States::NoTouch ||
-      state == Controllers::HeartRateController::States::NotEnoughData) {
+  if (state == Controllers::HeartRateController::States::NoTouch || state == Controllers::HeartRateController::States::NotEnoughData) {
     lv_label_set_text_static(label_hr_value, "--");
   } else if (heartRateController.HeartRate() == 0) {
     lv_label_set_text_static(label_hr_value, "--");
@@ -116,14 +117,14 @@ void HeartRate::Refresh() {
 
 void HeartRate::OnStartStopEvent(lv_event_t event) {
   if (event == LV_EVENT_CLICKED) {
-    if (heartRateController.State() == Controllers::HeartRateController::States::Stopped) {
+    if (heartRateController.State() == Controllers::HeartRateController::States::Disabled) {
       heartRateController.Enable();
-      UpdateStartStopButton(heartRateController.State() != Controllers::HeartRateController::States::Stopped);
+      UpdateStartStopButton(heartRateController.State() != Controllers::HeartRateController::States::Disabled);
       wakeLock.Lock();
       lv_obj_set_style_local_text_color(label_hr_value, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::highlight);
     } else {
       heartRateController.Disable();
-      UpdateStartStopButton(heartRateController.State() != Controllers::HeartRateController::States::Stopped);
+      UpdateStartStopButton(heartRateController.State() != Controllers::HeartRateController::States::Disabled);
       wakeLock.Release();
       lv_obj_set_style_local_text_color(label_hr_value, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
     }
@@ -131,5 +132,9 @@ void HeartRate::OnStartStopEvent(lv_event_t event) {
 }
 
 void HeartRate::UpdateStartStopButton(bool isRunning) {
-  lv_label_set_text_static(label_startStop, isRunning ? "Stop" : "Start");
+  if (isRunning) {
+    lv_label_set_text_static(label_startStop, "Stop");
+  } else {
+    lv_label_set_text_static(label_startStop, "Start");
+  }
 }

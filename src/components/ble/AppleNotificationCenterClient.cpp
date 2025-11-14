@@ -320,7 +320,7 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
     uint8_t titleSize = maxTitleSize + 4;
     uint8_t subTitleSize = maxSubtitleSize + 4;
     uint8_t messageSize = maxMessageSize + 4;
-    BYTE request[17];
+    uint8_t request[17];
     request[0] = 0x00; // Command ID: Get Notification Attributes
     request[1] = static_cast<uint8_t>(ancsNotif.uuid & 0xFF);
     request[2] = static_cast<uint8_t>((ancsNotif.uuid >> 8) & 0xFF);
