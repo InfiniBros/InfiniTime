@@ -21,6 +21,7 @@
 #include <lvgl/src/lv_core/lv_obj.h>
 #include <string>
 #include "displayapp/screens/Screen.h"
+#include "displayapp/widgets/PageIndicator.h"
 #include "displayapp/apps/Apps.h"
 #include "displayapp/Controllers.h"
 #include "Symbols.h"
@@ -36,7 +37,7 @@ namespace Pinetime {
     namespace Screens {
       class Music : public Screen {
       public:
-        Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble& bleController, Controllers::DateTime& dateTimeController);
+        Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble& bleController);
 
         ~Music() override;
 
@@ -49,7 +50,7 @@ namespace Pinetime {
 
         void UpdateLength();
 
-        void RefreshTrackInfo(bool force);
+        void RefreshTrackInfo();
 
         void SetDisconnectedUI();
 
@@ -74,11 +75,10 @@ namespace Pinetime {
 
         Pinetime::Controllers::MusicService& musicService;
         const Controllers::Ble& bleController;
-        Pinetime::Controllers::DateTime& dateTimeController;
 
-        std::string artist;
-        std::string album;
-        std::string track;
+        Utility::DirtyValue<std::string> artist;
+        Utility::DirtyValue<std::string> album;
+        Utility::DirtyValue<std::string> track;
 
         /** Total length in seconds */
         int totalLength = 0;
@@ -86,8 +86,6 @@ namespace Pinetime {
         int currentPosition;
 
         bool playing;
-
-        bool lastConnected = false;
 
         lv_task_t* taskRefresh;
 
@@ -104,7 +102,7 @@ namespace Pinetime {
       static constexpr const char* icon = Screens::Symbols::music;
 
       static Screens::Screen* Create(AppControllers& controllers) {
-        return new Screens::Music(*controllers.musicService, controllers.bleController, controllers.dateTimeController);
+        return new Screens::Music(*controllers.musicService, controllers.bleController);
       };
 
       static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {
