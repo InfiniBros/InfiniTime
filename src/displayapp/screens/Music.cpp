@@ -46,8 +46,8 @@ inline void lv_img_set_src_arr(lv_obj_t* img, const lv_img_dsc_t* src_img) {
  *
  * TODO: Investigate Apple Media Service and AVRCPv1.6 support for seamless integration
  */
-Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble& bleController, Controllers::DateTime& dateTimeController)
-  : musicService(music), bleController {bleController}, dateTimeController {dateTimeController} {
+Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble& bleController)
+  : musicService(music), bleController {bleController} {
 
   lv_obj_t* label;
 
@@ -63,7 +63,6 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnVolDown, LV_STATE_DEFAULT, &btn_style);
   label = lv_label_create(btnVolDown, nullptr);
   lv_label_set_text_static(label, Symbols::volumDown);
-  lv_obj_set_style_local_text_font(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnVolUp = lv_btn_create(lv_scr_act(), nullptr);
   btnVolUp->user_data = this;
@@ -73,27 +72,24 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnVolUp, LV_STATE_DEFAULT, &btn_style);
   label = lv_label_create(btnVolUp, nullptr);
   lv_label_set_text_static(label, Symbols::volumUp);
-  lv_obj_set_style_local_text_font(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnPrev = lv_btn_create(lv_scr_act(), nullptr);
   btnPrev->user_data = this;
   lv_obj_set_event_cb(btnPrev, event_handler);
   lv_obj_set_size(btnPrev, 76, 76);
-  lv_obj_align(btnPrev, nullptr, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+  lv_obj_align(btnPrev, nullptr, LV_ALIGN_IN_BOTTOM_LEFT, 3, 0);
   lv_obj_add_style(btnPrev, LV_STATE_DEFAULT, &btn_style);
   label = lv_label_create(btnPrev, nullptr);
   lv_label_set_text_static(label, Symbols::stepBackward);
-  lv_obj_set_style_local_text_font(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnNext = lv_btn_create(lv_scr_act(), nullptr);
   btnNext->user_data = this;
   lv_obj_set_event_cb(btnNext, event_handler);
   lv_obj_set_size(btnNext, 76, 76);
-  lv_obj_align(btnNext, nullptr, LV_ALIGN_IN_BOTTOM_RIGHT, 0, 0);
+  lv_obj_align(btnNext, nullptr, LV_ALIGN_IN_BOTTOM_RIGHT, -3, 0);
   lv_obj_add_style(btnNext, LV_STATE_DEFAULT, &btn_style);
   label = lv_label_create(btnNext, nullptr);
   lv_label_set_text_static(label, Symbols::stepForward);
-  lv_obj_set_style_local_text_font(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnPlayPause = lv_btn_create(lv_scr_act(), nullptr);
   btnPlayPause->user_data = this;
@@ -103,7 +99,6 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnPlayPause, LV_STATE_DEFAULT, &btn_style);
   txtPlayPause = lv_label_create(btnPlayPause, nullptr);
   lv_label_set_text_static(txtPlayPause, Symbols::play);
-  lv_obj_set_style_local_text_font(txtPlayPause, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   // I'm using the txtTrack label as the top anchor for the whole lot
   // of song, artist, progress bar and duration text (0:00 and -0:00) so
@@ -151,8 +146,6 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_set_width(txtTrackDuration, LV_HOR_RES);
   lv_obj_set_style_local_text_color(txtTrackDuration, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
 
-  musicService.event(Controllers::MusicService::EVENT_MUSIC_OPEN);
-
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 }
 
@@ -164,19 +157,23 @@ Music::~Music() {
 
 void Music::Refresh() {
   bleState = bleController.IsConnected();
-  if (bleState.Get() == false) {
-    SetDisconnectedUI();
-    lastConnected = false;
-  } else {
-    if (!lastConnected) {
-      // just reconnected
+
+  if (bleState.IsUpdated()) {
+    const bool connected = bleState.Get();
+
+    if (!connected) {
+      SetDisconnectedUI();
+      return;
+    } else {
       musicService.event(Controllers::MusicService::EVENT_MUSIC_OPEN);
       SetConnectedUI();
-      RefreshTrackInfo(true);
-    } else {
-      RefreshTrackInfo(false);
+      RefreshTrackInfo();
+      return;
     }
-    lastConnected = true;
+  }
+
+  if (bleState.Get()) {
+    RefreshTrackInfo();
   }
 }
 
@@ -192,6 +189,10 @@ void Music::SetDisconnectedUI() {
   lv_label_set_text_static(txtTrackDuration, "--:--");
   lv_bar_set_range(barTrackDuration, 0, 1000);
   lv_bar_set_value(barTrackDuration, 0, LV_ANIM_OFF);
+  // empty these so they are successfully updated on reconnect because of how DirtyValue works
+  artist = "";
+  track = "";
+  album = "";
 }
 
 void Music::SetConnectedUI() {
@@ -202,32 +203,32 @@ void Music::SetConnectedUI() {
   lv_obj_set_style_local_bg_color(btnVolUp, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, Colors::bgAlt);
 }
 
-void Music::RefreshTrackInfo(bool force) {
-  if (force || playing != musicService.isPlaying()) {
+void Music::RefreshTrackInfo() {
+  if (playing != musicService.isPlaying()) {
     playing = musicService.isPlaying();
     lv_label_set_text_static(txtPlayPause, playing ? Symbols::pause : Symbols::play);
   }
 
-  if (force || artist != musicService.getArtist()) {
-    artist = musicService.getArtist();
-    lv_label_set_text(txtArtist, artist.data());
+  artist = musicService.getArtist();
+  if (artist.IsUpdated()) {
+    lv_label_set_text(txtArtist, artist.Get().data());
   }
 
-  if (force || track != musicService.getTrack()) {
-    track = musicService.getTrack();
-    lv_label_set_text(txtTrack, track.data());
+  track = musicService.getTrack();
+  if (track.IsUpdated()) {
+    lv_label_set_text(txtTrack, track.Get().data());
   }
 
-  if (force || album != musicService.getAlbum()) {
-    album = musicService.getAlbum();
+  album = musicService.getAlbum();
+  if (album.IsUpdated()) {
   }
 
-  if (force || currentPosition != musicService.getProgress()) {
+  if (currentPosition != musicService.getProgress()) {
     currentPosition = musicService.getProgress();
     UpdateLength();
   }
 
-  if (force || totalLength != musicService.getTrackLength()) {
+  if (totalLength != musicService.getTrackLength()) {
     totalLength = musicService.getTrackLength();
     UpdateLength();
   }
@@ -235,8 +236,9 @@ void Music::RefreshTrackInfo(bool force) {
 
 void Music::UpdateLength() {
   int remaining = totalLength - currentPosition;
-  if (remaining < 0)
+  if (remaining < 0) {
     remaining = 0;
+  }
 
   if (totalLength > (99 * 60 * 60)) {
     lv_label_set_text_static(txtCurrentPosition, "Inf");
