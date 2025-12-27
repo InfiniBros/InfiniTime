@@ -223,7 +223,7 @@ void SystemTask::Work() {
           GoToSleep();
           break;
         case Messages::OnNewTime:
-          if (alarmController.IsEnabled()) {
+          if (alarmController.AnyAlarmEnabled()) {
             alarmController.ScheduleAlarm();
           }
           if (infiniSleepController.GetWakeAlarm().isEnabled) {

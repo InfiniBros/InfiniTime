@@ -50,7 +50,7 @@ void StatusIcons::Update() {
     lv_label_set_text_fmt(label_battery_value, "%d%%", batteryPercent);
   }
 
-  alarmEnabled = alarmController.IsEnabled();
+  alarmEnabled = alarmController.AnyAlarmEnabled();
   if (alarmEnabled.IsUpdated()) {
     lv_obj_set_hidden(alarmIcon, !alarmEnabled.Get());
   }
