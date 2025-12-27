@@ -197,7 +197,6 @@ void Music::SetDisconnectedUI() {
   // empty these so they are successfully updated on reconnect because of how DirtyValue works
   artist = "";
   track = "";
-  album = "";
 }
 
 void Music::SetConnectedUI() {
@@ -222,10 +221,6 @@ void Music::RefreshTrackInfo() {
   track = musicService.getTrack();
   if (track.IsUpdated()) {
     lv_label_set_text(txtTrack, track.Get().data());
-  }
-
-  album = musicService.getAlbum();
-  if (album.IsUpdated()) {
   }
 
   if (currentPosition != musicService.getProgress()) {
