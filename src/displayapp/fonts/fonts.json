@@ -100,7 +100,7 @@
          },
          {
             "file": "FontAwesome7-Solid.otf",
-            "range": "0x2B" // "+"
+            "range": "0x2B"
          }
       ],
       "bpp": 4,
