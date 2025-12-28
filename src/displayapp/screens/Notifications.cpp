@@ -293,8 +293,7 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   lv_cont_set_fit(subject_container, LV_FIT_NONE);
 
   // Split notifStr (stored in title here) into symbol + rest
-  // TODO: non-ancs notifications dont fit this formatting, needs to be adjusted
-  // potentially doable by checking if the ancs id is empty
+  // non-ancs notifications don't match this formatting, so skip em
   std::string symbol;
   std::string rest = title ? title : "";
 

@@ -184,14 +184,23 @@ void WatchFacePrimeTime::Refresh() {
 
   heartbeat = heartRateController.HeartRate();
   heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
+
   if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
     if (heartbeatRunning.Get()) {
+      lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xff4539));
+
       if (heartbeat.Get() > 0) {
-        lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xff4539));
         lv_label_set_text_fmt(heartbeatValue, "%d", heartbeat.Get());
       } else {
-        lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xff4539));
-        lv_label_set_text_static(heartbeatValue, "--");
+        switch (heartRateController.State()) {
+          case Controllers::HeartRateController::States::NotEnoughData:
+            lv_label_set_text_static(heartbeatValue, "--");
+            break;
+
+          default:
+            lv_label_set_text_static(heartbeatValue, "");
+            break;
+        }
       }
     } else {
       lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x1B1B1B));
