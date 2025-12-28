@@ -294,14 +294,16 @@ Notifications::NotificationItem::NotificationItem(const char* title,
 
   // Split notifStr (stored in title here) into symbol + rest
   // TODO: non-ancs notifications dont fit this formatting, needs to be adjusted
-  std::string notif(title ? title : "");
-  std::string symbol, rest;
-  auto pos = notif.find(' ');
-  if (pos != std::string::npos) {
-    symbol = notif.substr(0, pos);
-    rest = notif.substr(pos + 1);
-  } else {
-    rest = notif;
+  // potentially doable by checking if the ancs id is empty
+  std::string symbol;
+  std::string rest = title ? title : "";
+
+  if (ancsUid != 0) {
+    auto pos = rest.find(' ');
+    if (pos != std::string::npos) {
+      symbol = rest.substr(0, pos);
+      rest = rest.substr(pos + 1);
+    }
   }
 
   // Symbol (fixed)

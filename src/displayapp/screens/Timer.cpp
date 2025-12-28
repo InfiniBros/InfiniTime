@@ -324,6 +324,7 @@ void Timer::CreateLauncherUI() {
   labelCustom = lv_label_create(btnCustom, nullptr);
   lv_obj_set_style_local_text_font(labelCustom, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &lv_font_sys_48);
   lv_label_set_text_static(labelCustom, "+");
+  lv_obj_align(labelCustom, btnCustom, LV_ALIGN_CENTER, 0, 0);
 }
 
 void Timer::CreateTimerUI(uint32_t startDurationMs, bool autoStart) {

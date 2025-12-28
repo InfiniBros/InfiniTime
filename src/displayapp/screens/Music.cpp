@@ -61,6 +61,7 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnVolDown, LV_STATE_DEFAULT, &btn_style);
   txtVolDown = lv_label_create(btnVolDown, nullptr);
   lv_label_set_text_static(txtVolDown, Symbols::volumDown);
+  lv_obj_set_style_local_text_font(txtVolDown, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnVolUp = lv_btn_create(lv_scr_act(), nullptr);
   btnVolUp->user_data = this;
@@ -70,6 +71,7 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnVolUp, LV_STATE_DEFAULT, &btn_style);
   txtVolUp = lv_label_create(btnVolUp, nullptr);
   lv_label_set_text_static(txtVolUp, Symbols::volumUp);
+  lv_obj_set_style_local_text_font(txtVolUp, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnPrev = lv_btn_create(lv_scr_act(), nullptr);
   btnPrev->user_data = this;
@@ -79,6 +81,7 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnPrev, LV_STATE_DEFAULT, &btn_style);
   txtBtnPrev = lv_label_create(btnPrev, nullptr);
   lv_label_set_text_static(txtBtnPrev, Symbols::stepBackward);
+  lv_obj_set_style_local_text_font(txtBtnPrev, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnNext = lv_btn_create(lv_scr_act(), nullptr);
   btnNext->user_data = this;
@@ -88,6 +91,7 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnNext, LV_STATE_DEFAULT, &btn_style);
   txtBtnNext = lv_label_create(btnNext, nullptr);
   lv_label_set_text_static(txtBtnNext, Symbols::stepForward);
+  lv_obj_set_style_local_text_font(txtBtnNext, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   btnPlayPause = lv_btn_create(lv_scr_act(), nullptr);
   btnPlayPause->user_data = this;
@@ -97,6 +101,7 @@ Music::Music(Pinetime::Controllers::MusicService& music, const Controllers::Ble&
   lv_obj_add_style(btnPlayPause, LV_STATE_DEFAULT, &btn_style);
   txtPlayPause = lv_label_create(btnPlayPause, nullptr);
   lv_label_set_text_static(txtPlayPause, Symbols::play);
+  lv_obj_set_style_local_text_font(txtPlayPause, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &icons);
 
   buttons[0] = btnPrev;
   buttons[1] = btnPlayPause;
