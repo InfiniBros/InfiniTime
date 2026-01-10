@@ -279,7 +279,6 @@ void WatchFacePrimeTime::Refresh() {
                           uptimeHours,
                           uptimeMinutes,
                           uptimeSeconds);
-    lv_obj_realign(labelActivityBar);
   }
   lv_obj_realign(labelActivityBar);
 }
