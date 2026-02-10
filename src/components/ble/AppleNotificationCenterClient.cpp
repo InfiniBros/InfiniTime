@@ -227,7 +227,8 @@ std::string AppleNotificationCenterClient::AppIdToEmoji(const std::string& appId
                                                                             {"com.apple.Passbook", Symbols::applePayLogo},
                                                                             {"de.dkb.banking", Symbols::bankingLogo},
                                                                             {"com.hevyapp.hevy", Symbols::hevyLogo},
-                                                                            {"com.microsoft.skype.teams", Symbols::teamsLogo}};
+                                                                            {"com.microsoft.skype.teams", Symbols::teamsLogo},
+                                                                            {"com.zhiliaoapp.musically", Symbols::tiktokLogo}};
 
   auto it = appIdToEmoji.find(appId);
   if (it != appIdToEmoji.end()) {

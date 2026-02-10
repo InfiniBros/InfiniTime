@@ -71,6 +71,7 @@ namespace Pinetime {
         static constexpr const char* bankingLogo = "\xEF\x86\x9C";
         static constexpr const char* hevyLogo = "\xEF\x91\x8B";
         static constexpr const char* teamsLogo = "\xEF\x94\x80";
+        static constexpr const char* tiktokLogo = "\xEE\x81\xBB";
 
         // static constexpr const char* x = "\x\x\x";
         // emojis (also for ANCS)
