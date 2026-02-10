@@ -50,7 +50,8 @@ namespace Pinetime {
                            Pinetime::Controllers::AlertNotificationService& alertNotificationService,
                            Pinetime::Controllers::AppleNotificationCenterClient& ancsClient,
                            Pinetime::Controllers::MotorController& motorController,
-                           uint32_t ancsUid);
+                           uint32_t ancsUid,
+                           std::string appId);
           ~NotificationItem();
 
           bool IsRunning() const {
@@ -58,6 +59,7 @@ namespace Pinetime {
           }
 
           uint32_t ancsUid = 0;
+          std::string appId = "";
 
           void OnCallButtonEvent(lv_obj_t*, lv_event_t event);
 

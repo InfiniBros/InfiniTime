@@ -253,7 +253,7 @@ std::string AppleNotificationCenterClient::MapEmojiToSymbol(uint32_t codepoint) 
     {0x1F641, Symbols::slightFrown},  {0x2639, Symbols::frown},        {0x1F633, Symbols::flushed},       {0x1F635, Symbols::deadEyes},
     {0x1F620, Symbols::angry},        {0x1F621, Symbols::angry},       {0x1F92C, Symbols::angry},         {0x2764, Symbols::heartEmoji},
     {0x1F64F, Symbols::prayingHands}, {0x1F91D, Symbols::handshake},   {0x270C, Symbols::peaceSign},      {0x1F595, Symbols::middleFinger},
-    {0x1F4F7, Symbols::camera},       {0x1F4F9, Symbols::videoCam},    {0x1F3A4, Symbols::microphone}};
+    {0x1F4F7, Symbols::camera},       {0x1F4F9, Symbols::videoCam},    {0x1F3A4, Symbols::microphone},    {0x1F525, Symbols::flame}};
 
   auto it = emojiToSymbol.find(codepoint);
   if (it != emojiToSymbol.end()) {
@@ -563,7 +563,8 @@ std::string AppleNotificationCenterClient::DecodeUtf8String(os_mbuf* om, uint16_
            (codepoint == 0x20AC) ||                                               // Euro symbol
            (codepoint == 0x2018 || codepoint == 0x2019) ||                        // missing apostrophes
            (codepoint == 0x201E || codepoint == 0x201C || codepoint == 0x201D) || // additional quotation marks
-           (codepoint == 0x2026) ||                                               // its just this: ...
+           (codepoint == 0x2026) ||                                               // just this: ...
+           (codepoint == 0x2022) ||                                               // that weird bullet thing snapchat does
            codepoint == 0xB0;
   };
 

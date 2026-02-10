@@ -115,6 +115,7 @@ namespace Pinetime {
         static constexpr const char* camera = "\xEF\x80\xB0";
         static constexpr const char* videoCam = "\xEF\x80\xBD";
         static constexpr const char* microphone = "\xEF\x84\xB0";
+        static constexpr const char* flame = "\xEF\x81\xAD";
 
         // fontawesome_weathericons.c
         // static constexpr const char* sun = "\xEF\x86\x85";

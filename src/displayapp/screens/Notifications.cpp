@@ -38,7 +38,8 @@ Notifications::Notifications(DisplayApp* app,
                                                      alertNotificationService,
                                                      ancsClient,
                                                      motorController,
-                                                     notification.ancsUid);
+                                                     notification.ancsUid,
+                                                     notification.appId);
     validDisplay = true;
   } else {
     currentItem = std::make_unique<NotificationItem>(alertNotificationService, ancsClient, motorController);
@@ -116,7 +117,8 @@ void Notifications::Refresh() {
                                                        alertNotificationService,
                                                        ancsClient,
                                                        motorController,
-                                                       notification.ancsUid);
+                                                       notification.ancsUid,
+                                                       notification.appId);
     } else {
       running = false;
     }
@@ -204,7 +206,8 @@ bool Notifications::OnTouchEvent(Pinetime::Applications::TouchEvents event) {
                                                        alertNotificationService,
                                                        ancsClient,
                                                        motorController,
-                                                       previousNotification.ancsUid);
+                                                       previousNotification.ancsUid,
+                                                       previousNotification.appId);
     }
       return true;
     case Pinetime::Applications::TouchEvents::SwipeUp: {
@@ -233,7 +236,8 @@ bool Notifications::OnTouchEvent(Pinetime::Applications::TouchEvents event) {
                                                        alertNotificationService,
                                                        ancsClient,
                                                        motorController,
-                                                       nextNotification.ancsUid);
+                                                       nextNotification.ancsUid,
+                                                       nextNotification.appId);
     }
       return true;
     default:
@@ -259,7 +263,8 @@ Notifications::NotificationItem::NotificationItem(Pinetime::Controllers::AlertNo
                      alertNotificationService,
                      ancsClient,
                      motorController,
-                     0) {
+                     0,
+                     "") {
 }
 
 Notifications::NotificationItem::NotificationItem(const char* title,
@@ -270,8 +275,9 @@ Notifications::NotificationItem::NotificationItem(const char* title,
                                                   Pinetime::Controllers::AlertNotificationService& alertNotificationService,
                                                   Pinetime::Controllers::AppleNotificationCenterClient& ancsClient,
                                                   Pinetime::Controllers::MotorController& motorController,
-                                                  uint32_t ancsUid)
-  : alertNotificationService {alertNotificationService}, ancsClient {ancsClient}, motorController {motorController} {
+                                                  uint32_t ancsUid,
+                                                  std::string appId)
+  : appId {appId}, alertNotificationService {alertNotificationService}, ancsClient {ancsClient}, motorController {motorController} {
   this->ancsUid = ancsUid;
 
   container = lv_cont_create(lv_scr_act(), nullptr);
@@ -297,7 +303,7 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   std::string symbol;
   std::string rest = title ? title : "";
 
-  if (ancsUid != 0) {
+  if (!appId.empty()) {
     auto pos = rest.find(' ');
     if (pos != std::string::npos) {
       symbol = rest.substr(0, pos);
