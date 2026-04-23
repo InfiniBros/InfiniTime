@@ -34,7 +34,8 @@ namespace {
 
 HeartRate::HeartRate(Controllers::HeartRateController& heartRateController, System::SystemTask& systemTask)
   : heartRateController {heartRateController}, wakeLock(systemTask) {
-  bool isHrRunning = heartRateController.State() != Controllers::HeartRateController::States::Disabled;
+  bool isHrRunning = heartRateController.State() != Controllers::HeartRateController::States::Disabled &&
+                   heartRateController.State() != Controllers::HeartRateController::States::Stopped;
 
   // create value label
   label_hr_value = lv_label_create(lv_scr_act(), nullptr);
@@ -101,9 +102,7 @@ void HeartRate::RecenterHrmValue() {
 void HeartRate::Refresh() {
 
   auto state = heartRateController.State();
-  if (state == Controllers::HeartRateController::States::NoTouch || state == Controllers::HeartRateController::States::NotEnoughData) {
-    lv_label_set_text_static(label_hr_value, "--");
-  } else if (heartRateController.HeartRate() == 0) {
+  if (state == Controllers::HeartRateController::States::NoTouch || state == Controllers::HeartRateController::States::NotEnoughData || heartRateController.HeartRate() == 0) {
     lv_label_set_text_static(label_hr_value, "--");
   } else {
     int hr = heartRateController.HeartRate();
@@ -117,14 +116,14 @@ void HeartRate::Refresh() {
 
 void HeartRate::OnStartStopEvent(lv_event_t event) {
   if (event == LV_EVENT_CLICKED) {
-    if (heartRateController.State() == Controllers::HeartRateController::States::Disabled) {
+    if (heartRateController.State() == Controllers::HeartRateController::States::Disabled || heartRateController.State() == Controllers::HeartRateController::States::Stopped) {
       heartRateController.Enable();
-      UpdateStartStopButton(heartRateController.State() != Controllers::HeartRateController::States::Disabled);
+      UpdateStartStopButton(true);
       wakeLock.Lock();
       lv_obj_set_style_local_text_color(label_hr_value, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::highlight);
     } else {
       heartRateController.Disable();
-      UpdateStartStopButton(heartRateController.State() != Controllers::HeartRateController::States::Disabled);
+      UpdateStartStopButton(false);
       wakeLock.Release();
       lv_obj_set_style_local_text_color(label_hr_value, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
     }

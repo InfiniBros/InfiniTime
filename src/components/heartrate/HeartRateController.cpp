@@ -18,7 +18,7 @@ void HeartRateController::UpdateHeartRate(uint8_t heartRate) {
 
 void HeartRateController::Enable() {
   if (task != nullptr) {
-    state = States::Stopped;
+    state = States::Searching;
     task->PushMessage(Pinetime::Applications::HeartRateTask::Messages::Enable);
   }
 }
