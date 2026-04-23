@@ -568,7 +568,7 @@ void Sleep::OnButtonEvent(lv_obj_t* obj, lv_event_t event) {
     }
     if (obj == btnStop) {
       StopAlarmPush();
-      settingsController.SetHeartRateBackgroundMeasurementInterval(5 * 60);
+      settingsController.SetHeartRateBackgroundMeasurementInterval(10 * 60);
       settingsController.SetNotificationStatus(Controllers::Settings::Notification::On);
       return;
     }
@@ -591,12 +591,12 @@ void Sleep::OnButtonEvent(lv_obj_t* obj, lv_event_t event) {
 
         // If we just enabled it, set HR interval to 2 minutes
         if (!wasEnabled && infiniSleepController.IsTrackerEnabled()) {
-          settingsController.SetHeartRateBackgroundMeasurementInterval(2 * 60);
+          settingsController.SetHeartRateBackgroundMeasurementInterval(5 * 60);
           settingsController.SetNotificationStatus(Controllers::Settings::Notification::Sleep);
         }
         // If we just disabled it, set HR interval to 10 minutes
         else if (wasEnabled && !infiniSleepController.IsTrackerEnabled()) {
-          settingsController.SetHeartRateBackgroundMeasurementInterval(5 * 60);
+          settingsController.SetHeartRateBackgroundMeasurementInterval(10 * 60);
           settingsController.SetNotificationStatus(Controllers::Settings::Notification::On);
         }
 
