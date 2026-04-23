@@ -1,9 +1,9 @@
 #include "heartratetask/HeartRateTask.h"
-#include <components/heartrate/HeartRateController.h>
 #include <drivers/Hrs3300.h>
 #include <drivers/Bma421.h>
 #include <limits>
 #include <optional>
+#include "utility/Math.h"
 
 using namespace Pinetime::Applications;
 using ControllerStates = Pinetime::Controllers::HeartRateController::States;
@@ -51,8 +51,8 @@ TickType_t HeartRateTask::CurrentTaskDelay() {
     static_assert((configTICK_RATE_HZ / 2ULL) * (std::numeric_limits<decltype(count)>::max() + 1ULL) * static_cast<uint64_t>((deltaTms)) <
                     std::numeric_limits<uint32_t>::max(),
                   "Overflow");
-    TickType_t elapsedTarget =
-      RoundedDiv(static_cast<uint32_t>(configTICK_RATE_HZ / 2) * (static_cast<uint32_t>(count) + 1U) * static_cast<uint32_t>((deltaTms)),
+     TickType_t elapsedTarget =
+      Utility::RoundedDiv(static_cast<uint32_t>(configTICK_RATE_HZ / 2) * (static_cast<uint32_t>(count) + 1U) * static_cast<uint32_t>(deltaTms),
                  static_cast<uint32_t>(1000 / 2));
 
     // On count overflow, reset both count and start time
