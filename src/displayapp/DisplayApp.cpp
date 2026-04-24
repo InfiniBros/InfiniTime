@@ -453,6 +453,9 @@ void DisplayApp::Refresh() {
           sleep->UpdateDisplay();
         }
         break;
+      case Messages::ANCSCallDeleted:
+        motorController.StopCallRing();
+        break;
       case Messages::ShowPairingKey:
         LoadNewScreen(Apps::PassKey, DisplayApp::FullRefreshDirections::Up);
         motorController.NotifBuzz();

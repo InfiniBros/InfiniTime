@@ -33,6 +33,7 @@ namespace Pinetime {
       StopFileTransfer,
       BleRadioEnableToggle,
       SleepTrackerUpdate,
+      ANCSCallDeleted
     };
   }
 }

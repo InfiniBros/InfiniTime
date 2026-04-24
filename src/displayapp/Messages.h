@@ -28,6 +28,7 @@ namespace Pinetime {
         BleRadioEnableToggle,
         OnChargingEvent,
         SleepTrackerUpdate,
+        ANCSCallDeleted
       };
     }
   }

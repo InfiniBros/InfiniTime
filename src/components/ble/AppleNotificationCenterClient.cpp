@@ -284,7 +284,11 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
 
     // If notification was removed, we remove it from the notifications map
     if (ancsNotif.eventId == static_cast<uint8_t>(EventIds::Removed) && notifications.contains(ancsNotif.uuid)) {
+      bool wasCall = notifications[ancsNotif.uuid].category == static_cast<uint8_t>(Categories::IncomingCall);
       notifications.erase(ancsNotif.uuid);
+      if (wasCall) {
+        systemTask.PushMessage(Pinetime::System::Messages::ANCSCallDeleted);
+      }
       NRF_LOG_INFO("ANCS Notification removed: %d", ancsNotif.uuid);
       return;
     }

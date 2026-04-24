@@ -313,6 +313,9 @@ void SystemTask::Work() {
           }
           HandleButtonAction(action);
         } break;
+        case Messages::ANCSCallDeleted:
+          displayApp.PushMessage(Pinetime::Applications::Display::Messages::ANCSCallDeleted);
+        break;
         case Messages::HandleButtonTimerEvent: {
           auto action = buttonHandler.HandleEvent(Controllers::ButtonHandler::Events::Timer);
           HandleButtonAction(action);
