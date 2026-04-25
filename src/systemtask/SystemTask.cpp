@@ -425,7 +425,7 @@ void SystemTask::GoToRunning() {
   if (state == SystemTaskState::Running) {
     return;
   }
-  if (state == SystemTaskState::Sleeping || state == SystemTaskState::AODSleeping && bleController.IsConnected()) {
+  if (state == SystemTaskState::Sleeping || state == SystemTaskState::AODSleeping) {
     // SPI only switched off when entering Sleeping, not AOD or GoingToSleep
     if (state == SystemTaskState::Sleeping) {
       spi.Wakeup();
