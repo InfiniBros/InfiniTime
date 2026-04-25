@@ -253,7 +253,6 @@ void SystemTask::Work() {
           break;
         case Messages::BleConnected:
           displayApp.PushMessage(Pinetime::Applications::Display::Messages::NotifyDeviceActivity);
-          nimbleController.music().event(Controllers::MusicService::EVENT_MUSIC_OPEN);
           isBleDiscoveryTimerRunning = true;
           bleDiscoveryTimer = 5;
           break;
@@ -426,7 +425,7 @@ void SystemTask::GoToRunning() {
   if (state == SystemTaskState::Running) {
     return;
   }
-  if (state == SystemTaskState::Sleeping || state == SystemTaskState::AODSleeping) {
+  if (state == SystemTaskState::Sleeping || state == SystemTaskState::AODSleeping && bleController.IsConnected()) {
     // SPI only switched off when entering Sleeping, not AOD or GoingToSleep
     if (state == SystemTaskState::Sleeping) {
       spi.Wakeup();
@@ -435,6 +434,10 @@ void SystemTask::GoToRunning() {
     // Double Tap needs the touch screen to be in normal mode
     if (!settingsController.isWakeUpModeOn(Pinetime::Controllers::Settings::WakeUpMode::DoubleTap)) {
       touchPanel.Wakeup();
+    }
+    
+    if (bleController.IsConnected()) {
+      nimbleController.music().event(Controllers::MusicService::EVENT_MUSIC_OPEN);
     }
 
     spiNorFlash.Wakeup();
