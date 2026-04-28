@@ -459,7 +459,7 @@ void WatchFaceCasioStyleG7710::DrawWeather() {
 
       lv_label_set_text_fmt(label_temperature, "%d°%c", temp, tempUnit);
       lv_label_set_text_fmt(label_temperature_segment, "%d°%c", temp, tempUnit);
-      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId));
+      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId, weatherService.IsNight()));
     } else {
       lv_label_set_text_static(label_temperature, "--°");
       lv_label_set_text_static(label_temperature_segment, "--°");

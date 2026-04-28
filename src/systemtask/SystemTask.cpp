@@ -485,11 +485,10 @@ void SystemTask::UpdateMotion() {
         (settingsController.isWakeUpModeOn(Pinetime::Controllers::Settings::WakeUpMode::Shake) &&
          motionController.CurrentShakeSpeed() > settingsController.GetShakeThreshold())) {
       GoToRunning();
+    } else if (settingsController.isWakeUpModeOn(Pinetime::Controllers::Settings::WakeUpMode::LowerWrist) &&
+               state == SystemTaskState::Running && motionController.ShouldLowerSleep()) {
+      GoToSleep();
     }
-  }
-  if (settingsController.isWakeUpModeOn(Pinetime::Controllers::Settings::WakeUpMode::LowerWrist) && state == SystemTaskState::Running &&
-      motionController.ShouldLowerSleep()) {
-    GoToSleep();
   }
 }
 

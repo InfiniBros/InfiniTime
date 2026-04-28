@@ -240,7 +240,7 @@ void WatchFacePrimeTime::Refresh() {
         lv_obj_set_style_local_text_color(temperature, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::deepOrange);
       }
       lv_label_set_text_fmt(temperature, "%d°%c", temp, tempUnit);
-      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId));
+      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId, weatherService.IsNight()));
     } else {
       lv_label_set_text_static(temperature, "--°");
       lv_label_set_text(weatherIcon, Symbols::ban);

@@ -170,7 +170,7 @@ void WatchFaceDigital::Refresh() {
   }
 
   heartbeat = heartRateController.HeartRate();
-  heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
+  heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Disabled;
   if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
     if (heartbeat.Get() > 0) {
       lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
@@ -202,7 +202,7 @@ void WatchFaceDigital::Refresh() {
         tempUnit = 'F';
       }
       lv_label_set_text_fmt(temperature, "%d°%c", temp, tempUnit);
-      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId));
+      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId, weatherService.IsNight()));
     } else {
       lv_label_set_text_static(temperature, "");
       lv_label_set_text(weatherIcon, "");

@@ -1,8 +1,10 @@
 #include "heartratetask/HeartRateTask.h"
+#include <components/heartrate/HeartRateController.h>
 #include <drivers/Hrs3300.h>
 #include <drivers/Bma421.h>
 #include <limits>
 #include <optional>
+
 #include "utility/Math.h"
 
 using namespace Pinetime::Applications;
@@ -10,12 +12,6 @@ using ControllerStates = Pinetime::Controllers::HeartRateController::States;
 
 namespace {
   constexpr TickType_t backgroundMeasurementTimeLimit = 30 * configTICK_RATE_HZ;
-
-  // dividend + (divisor / 2) must be less than the max T value
-  template <std::unsigned_integral T>
-  constexpr T RoundedDiv(T dividend, T divisor) {
-    return (dividend + (divisor / static_cast<T>(2))) / divisor;
-  }
 }
 
 std::optional<TickType_t> HeartRateTask::BackgroundMeasurementInterval() const {
@@ -51,9 +47,9 @@ TickType_t HeartRateTask::CurrentTaskDelay() {
     static_assert((configTICK_RATE_HZ / 2ULL) * (std::numeric_limits<decltype(count)>::max() + 1ULL) * static_cast<uint64_t>((deltaTms)) <
                     std::numeric_limits<uint32_t>::max(),
                   "Overflow");
-     TickType_t elapsedTarget =
-      Utility::RoundedDiv(static_cast<uint32_t>(configTICK_RATE_HZ / 2) * (static_cast<uint32_t>(count) + 1U) * static_cast<uint32_t>(deltaTms),
-                 static_cast<uint32_t>(1000 / 2));
+    TickType_t elapsedTarget = Utility::RoundedDiv(static_cast<uint32_t>(configTICK_RATE_HZ / 2) * (static_cast<uint32_t>(count) + 1U) *
+                                                     static_cast<uint32_t>((deltaTms)),
+                                                   static_cast<uint32_t>(1000 / 2));
 
     // On count overflow, reset both count and start time
     // Count is 16bit to avoid overflow in elapsedTarget
@@ -153,7 +149,6 @@ void HeartRateTask::Work() {
           break;
         case Messages::Disable:
           newState = States::Disabled;
-          SendHeartRate(ControllerStates::Disabled, 0);
           break;
       }
     }
@@ -170,6 +165,10 @@ void HeartRateTask::Work() {
     } else if ((newState == States::Waiting || newState == States::Disabled) &&
                (state == States::ForegroundMeasuring || state == States::BackgroundMeasuring)) {
       StopMeasurement();
+      controller.UpdateState(ControllerStates::Stopped);
+    }
+    if (newState == States::Disabled) {
+      SendHeartRate(ControllerStates::Disabled, 0);
     }
     state = newState;
 
@@ -196,7 +195,6 @@ void HeartRateTask::StartMeasurement() {
 void HeartRateTask::StopMeasurement() {
   heartRateSensor.Disable();
   ppg.Reset();
-  controller.UpdateState(ControllerStates::Stopped);
 }
 
 void HeartRateTask::HandleSensorData() {
@@ -224,7 +222,6 @@ void HeartRateTask::HandleSensorData() {
     SendHeartRate(ControllerStates::NoTouch, 0);
   } else if (ppgState == Drivers::Hrs3300::PPGState::Reset) {
     ppg.Reset();
-    count = 0;
     lastHrs = 0;
     SendHeartRate(ControllerStates::NotEnoughData, 0);
   } else if (ppgState == Drivers::Hrs3300::PPGState::Running) {
