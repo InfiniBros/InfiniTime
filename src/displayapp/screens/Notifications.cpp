@@ -39,7 +39,8 @@ Notifications::Notifications(DisplayApp* app,
                                                      ancsClient,
                                                      motorController,
                                                      notification.ancsUid,
-                                                     notification.appId);
+                                                     notification.appId,
+                                                     notification.subtitle);
     validDisplay = true;
   } else {
     currentItem = std::make_unique<NotificationItem>(alertNotificationService, ancsClient, motorController);
@@ -118,7 +119,8 @@ void Notifications::Refresh() {
                                                        ancsClient,
                                                        motorController,
                                                        notification.ancsUid,
-                                                       notification.appId);
+                                                       notification.appId,
+                                                       notification.subtitle);
     } else {
       running = false;
     }
@@ -207,7 +209,8 @@ bool Notifications::OnTouchEvent(Pinetime::Applications::TouchEvents event) {
                                                        ancsClient,
                                                        motorController,
                                                        previousNotification.ancsUid,
-                                                       previousNotification.appId);
+                                                       previousNotification.appId,
+                                                       previousNotification.subtitle);
     }
       return true;
     case Pinetime::Applications::TouchEvents::SwipeUp: {
@@ -237,7 +240,8 @@ bool Notifications::OnTouchEvent(Pinetime::Applications::TouchEvents event) {
                                                        ancsClient,
                                                        motorController,
                                                        nextNotification.ancsUid,
-                                                       nextNotification.appId);
+                                                       nextNotification.appId,
+                                                       nextNotification.subtitle);
     }
       return true;
     default:
@@ -264,6 +268,7 @@ Notifications::NotificationItem::NotificationItem(Pinetime::Controllers::AlertNo
                      ancsClient,
                      motorController,
                      0,
+                     "",
                      "") {
 }
 
@@ -276,7 +281,8 @@ Notifications::NotificationItem::NotificationItem(const char* title,
                                                   Pinetime::Controllers::AppleNotificationCenterClient& ancsClient,
                                                   Pinetime::Controllers::MotorController& motorController,
                                                   uint32_t ancsUid,
-                                                  std::string appId)
+                                                  std::string appId,
+                                                  std::string subtitle)
   : appId {appId}, alertNotificationService {alertNotificationService}, ancsClient {ancsClient}, motorController {motorController} {
   this->ancsUid = ancsUid;
 
@@ -293,11 +299,6 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   lv_obj_set_style_local_pad_inner(subject_container, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 5);
   lv_obj_set_style_local_border_width(subject_container, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
 
-  lv_obj_set_pos(subject_container, 0, 50);
-  lv_obj_set_size(subject_container, LV_HOR_RES, LV_VER_RES - 50);
-  lv_cont_set_layout(subject_container, LV_LAYOUT_COLUMN_LEFT);
-  lv_cont_set_fit(subject_container, LV_FIT_NONE);
-
   // Split notifStr (stored in title here) into symbol + rest
   // non-ancs notifications don't match this formatting, so skip em
   std::string symbol;
@@ -310,6 +311,13 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       rest = rest.substr(pos + 1);
     }
   }
+
+  // adjust size of message box if group is empty or not
+  int headerHeight = subtitle.empty() ? 50 : 70;
+  lv_obj_set_size(subject_container, LV_HOR_RES, LV_VER_RES - headerHeight);
+  lv_obj_set_pos(subject_container, 0, headerHeight);
+  lv_cont_set_layout(subject_container, LV_LAYOUT_COLUMN_LEFT);
+  lv_cont_set_fit(subject_container, LV_FIT_NONE);
 
   // Symbol (fixed)
   lv_obj_t* alert_symbol = lv_label_create(lv_scr_act(), nullptr);
@@ -324,21 +332,40 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   lv_obj_set_style_local_text_color(alert_title, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
   lv_obj_set_auto_realign(alert_title, true);
 
-  if (symbol != std::string("")) {
-    lv_obj_set_hidden(alert_symbol, false);
-    lv_obj_align(alert_symbol, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 16);
-    lv_obj_align(alert_title, alert_symbol, LV_ALIGN_IN_BOTTOM_LEFT, 30, 0);
-    lv_obj_set_width(alert_title, 155);
-  } else {
-    lv_obj_set_hidden(alert_symbol, true);
-    lv_obj_align(alert_title, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 16);
-    lv_obj_set_width(alert_title, 190);
-  }
+  // group
+  lv_obj_t* alert_group = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_text(alert_group, subtitle.c_str());
+  lv_obj_set_style_local_text_color(alert_group, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
+  lv_obj_set_auto_realign(alert_group, true);
 
   // Count at far right
   lv_obj_t* alert_count = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_fmt(alert_count, "%i/%i", notifNr, notifNb);
   lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 16);
+
+  if (symbol != std::string("")) {
+  lv_obj_set_hidden(alert_symbol, false);
+  lv_obj_set_width(alert_title, 155);
+
+    if (!subtitle.empty()) {
+      lv_obj_align(alert_symbol, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 22);
+      lv_obj_align(alert_title, alert_symbol, LV_ALIGN_IN_BOTTOM_LEFT, 30, -10);
+      lv_obj_align(alert_group, alert_title, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 1);
+      lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 22);
+      lv_obj_set_width(alert_group, 155);
+    } else {
+      lv_obj_set_hidden(alert_group, true);
+      lv_obj_align(alert_symbol, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 16);
+      lv_obj_align(alert_title, alert_symbol, LV_ALIGN_IN_BOTTOM_LEFT, 30, 0);
+      lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 16);
+    }
+  } else {
+    lv_obj_set_hidden(alert_symbol, true);
+    lv_obj_set_hidden(alert_group, true);
+    lv_obj_align(alert_title, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 16);
+    lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 16);
+    lv_obj_set_width(alert_title, 190);
+  }
 
   // Subject body below
   lv_obj_t* alert_subject = lv_label_create(subject_container, nullptr);

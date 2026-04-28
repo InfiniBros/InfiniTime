@@ -39,6 +39,8 @@ namespace Pinetime {
 
         // new field to store ANCS app identifier (bundle ID)
         std::string appId;
+        
+        std::string subtitle;
 
         const char* Message() const;
         const char* Title() const;

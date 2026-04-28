@@ -419,16 +419,14 @@ void AppleNotificationCenterClient::OnNotification(ble_gap_event* event) {
     NotificationManager::Notification notif;
     notif.ancsUid = notificationUid;
     notif.appId = decodedAppId;
-    // notif.subtitle = decodedSubTitle;
+    notif.subtitle = decodedSubTitle;
 
     std::string notifStr;
 
     if (incomingCall) {
       notifStr = decodedTitle + "\n" + decodedSubTitle;
-    } else if (decodedSubTitle == "") {
-      notifStr = AppIdToEmoji(decodedAppId) + " " + decodedTitle + "\n" + decodedMessage;
     } else {
-      notifStr = AppIdToEmoji(decodedAppId) + " " + decodedTitle + " - " + decodedSubTitle + "\n" + decodedMessage;
+      notifStr = AppIdToEmoji(decodedAppId) + " " + decodedTitle + "\n" + decodedMessage;
     }
 
     // Adjust notification if too long
