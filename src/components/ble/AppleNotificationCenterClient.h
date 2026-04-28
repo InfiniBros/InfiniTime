@@ -41,8 +41,8 @@ namespace Pinetime {
       void AcceptIncomingCall(uint32_t notificationUid);
       void RejectIncomingCall(uint32_t notificationUid);
 
-      static constexpr uint8_t maxTitleSize {20};
-      static constexpr uint8_t maxSubtitleSize {20};
+      static constexpr uint8_t maxTitleSize {30};
+      static constexpr uint8_t maxSubtitleSize {30};
       static constexpr uint8_t maxMessageSize {120};
 
       // The Apple Notification Center Service UUID are from

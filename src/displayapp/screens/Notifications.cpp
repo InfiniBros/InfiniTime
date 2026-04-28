@@ -335,6 +335,7 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   // group
   lv_obj_t* alert_group = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text(alert_group, subtitle.c_str());
+  lv_label_set_long_mode(alert_group, LV_LABEL_LONG_SROLL_CIRC);
   lv_obj_set_style_local_text_color(alert_group, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
   lv_obj_set_auto_realign(alert_group, true);
 
@@ -344,8 +345,8 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 16);
 
   if (symbol != std::string("")) {
-  lv_obj_set_hidden(alert_symbol, false);
-  lv_obj_set_width(alert_title, 155);
+    lv_obj_set_hidden(alert_symbol, false);
+    lv_obj_set_width(alert_title, 155);
 
     if (!subtitle.empty()) {
       lv_obj_align(alert_symbol, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 22);
