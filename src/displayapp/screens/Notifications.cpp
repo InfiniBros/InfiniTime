@@ -344,7 +344,7 @@ Notifications::NotificationItem::NotificationItem(const char* title,
   lv_label_set_text_fmt(alert_count, "%i/%i", notifNr, notifNb);
   lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 16);
 
-  if (symbol != std::string("")) {
+  if (!symbol.empty()) {
     lv_obj_set_hidden(alert_symbol, false);
     lv_obj_set_width(alert_title, 155);
 
@@ -360,6 +360,13 @@ Notifications::NotificationItem::NotificationItem(const char* title,
       lv_obj_align(alert_title, alert_symbol, LV_ALIGN_IN_BOTTOM_LEFT, 30, 0);
       lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 16);
     }
+  } else if (!subtitle.empty()) {
+    lv_obj_set_hidden(alert_symbol, true);
+    lv_obj_set_width(alert_title, 190);
+    lv_obj_set_width(alert_group, 190);
+    lv_obj_align(alert_title, nullptr, LV_ALIGN_IN_TOP_LEFT, 8, 22);
+    lv_obj_align(alert_group, alert_title, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 1);
+    lv_obj_align(alert_count, nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 22);
   } else {
     lv_obj_set_hidden(alert_symbol, true);
     lv_obj_set_hidden(alert_group, true);

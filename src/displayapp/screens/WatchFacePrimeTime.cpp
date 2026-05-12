@@ -183,7 +183,8 @@ void WatchFacePrimeTime::Refresh() {
   }
 
   heartbeat = heartRateController.HeartRate();
-  heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
+  heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Disabled &&
+                     heartRateController.State() != Controllers::HeartRateController::States::Stopped;
 
   if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
     if (heartbeatRunning.Get()) {

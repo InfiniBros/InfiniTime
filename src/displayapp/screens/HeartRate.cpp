@@ -35,7 +35,7 @@ namespace {
 HeartRate::HeartRate(Controllers::HeartRateController& heartRateController, System::SystemTask& systemTask)
   : heartRateController {heartRateController}, wakeLock(systemTask) {
   bool isHrRunning = heartRateController.State() != Controllers::HeartRateController::States::Disabled &&
-                   heartRateController.State() != Controllers::HeartRateController::States::Stopped;
+                     heartRateController.State() != Controllers::HeartRateController::States::Stopped;
 
   // create value label
   label_hr_value = lv_label_create(lv_scr_act(), nullptr);

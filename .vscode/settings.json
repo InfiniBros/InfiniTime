@@ -15,8 +15,14 @@
             "visibility": "hidden"
         }
     },
+    "cmake.configureOnOpen": false,
     "cmake.generator": "Unix Makefiles",
-    "clang-tidy.buildPath": "build/compile_commands.json",
+    "clang-tidy.executable": "/usr/bin/clang-tidy-17",
+    "editor.formatOnSave": true,
+    "clang-format.executable": "/usr/bin/clang-format-17",
+    "[cpp]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
     "files.associations": {
         "array": "cpp",
         "atomic": "cpp",
